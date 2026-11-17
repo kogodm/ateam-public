@@ -10,6 +10,8 @@ Built with Tauri, React, TypeScript and a Node sidecar.
 Commercial use requires a separate license from the copyright holder.
 See [LICENSE](LICENSE). Do not describe this license as unrestricted open source.
 
+![Ateam workspace with project and teammate navigation, a Stream conversation, and the task/status panel](assets/ateam-workspace.png)
+
 ## Core capabilities
 
 ### 1. Multiple projects in one workspace
@@ -19,7 +21,16 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
 - Use Terminal and Stream views to follow messages, changes, tool output and questions.
 - Keep development, testing, review, documentation and maintenance work accessible.
 
-### 2. Long-running work across session boundaries
+### 2. Project-scoped task tracking
+
+- Keep each project's task list alongside its coding sessions, with a project view
+  and an all-projects view for tracking work across the workspace.
+- Capture task details, tags and reminders; mark work complete or reopen it as needed.
+- Let agents add and update tasks through the session-scoped tasks MCP, so follow-up
+  work stays associated with the project instead of getting lost in a conversation.
+- Open task details and return to the originating session when available.
+
+### 3. Long-running work across session boundaries
 
 - Pause and resume sessions, or hand work to a successor session when needed.
 - Claude context-limit handoff carries a task briefing into the next session.
@@ -27,7 +38,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
 - Continuity means recovery and handoff, not infinite model context or guaranteed
   unattended correctness. Important actions still require authorization and review.
 
-### 3. Multiple CLI providers
+### 4. Multiple CLI providers
 
 - Integrate Claude, Codex, Cursor CLI and OpenCode in the same desktop workspace.
 - Choose a provider for the task and inspect its sessions and execution results.
@@ -35,7 +46,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
 - Resume, recall injection, MCP and handoff capabilities vary by provider and
   installed CLI version; feature parity across all providers is not promised.
 
-### 4. Humans: accumulated knowledge with correction
+### 5. Humans: accumulated knowledge with correction
 
 - Each Human has a persistent identity, responsibilities, knowledge, skills and experience.
 - Capture useful lessons and reuse them in later sessions instead of relearning them.
@@ -44,7 +55,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
 - A model session ending does not erase the teammate's accumulated project knowledge.
 - Stored knowledge remains reviewable; accumulation is not a guarantee of correctness.
 
-### 5. Continue from desktop, phone, tablet or browser
+### 6. Continue from desktop, phone, tablet or browser
 
 - Inspect sessions and execution results from local desktop and browser/mobile surfaces.
 - Use LAN access locally or authorized Remote/Relay access across networks.
@@ -52,7 +63,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
   development still happens on your own machine.
 - Remote access and optional synchronization require explicit account/project permissions.
 
-### 6. Local development from web AI clients
+### 7. Local development from web AI clients
 
 - External MCP lets a web AI coordinator discover authorized local projects and sessions.
 - Read/search code, inspect Git changes, run tests and commands, and commit/push when authorized.
@@ -63,7 +74,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
   a compatible MCP client or bridge; native Gemini web connectivity is not claimed
   as verified here. Client plans and tool availability depend on the provider.
 
-### 7. Reduce CLI model calls and token consumption
+### 8. Reduce CLI model calls and token consumption
 
 - Reading files, checking logs, running tests and executing an already-decided
   command need not trigger another CLI model reasoning and response cycle.
