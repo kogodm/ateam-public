@@ -6,7 +6,7 @@
       "mode": 420
     },
     ".github/workflows/public-release.yml": {
-      "sha256": "feb1a9f3852ff621a4a3e13e070c775a5ff3a03bd9b57cf315a73fbcb34d35f1",
+      "sha256": "e46d96e98b62fcd89f57cc314a574adcd25957e8742aa55d8e9c691d64631c11",
       "mode": 420
     },
     ".github/workflows/source-check.yml": {

@@ -53,7 +53,8 @@ jobs:
         with:
           run_install: false
       - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/cache@v4
+      - uses: actions/cache/restore@v4
+        id: cargo-cache
         with:
           path: |
             ~/.cargo/registry
@@ -126,11 +127,18 @@ jobs:
           (output / f'SHA256SUMS-{os.environ["PLATFORM_LABEL"]}.txt').write_text('\n'.join(sums) + '\n')
           print('\n'.join(sums))
           PY
+      - name: Save successful native build cache
+        if: steps.cargo-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            apps/desktop/src-tauri/target
+          key: ${{ steps.cargo-cache.outputs.cache-primary-key }}
       - name: Attach installers to GitHub Release only
         if: github.event_name == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.release.tag_name }}
-          make_latest: false
-          fail_on_unmatched_files: true
-          files: release-assets/*
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" release-assets/* --repo "$GITHUB_REPOSITORY" --clobber
