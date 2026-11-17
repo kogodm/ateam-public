@@ -1,0 +1,89 @@
+[Ateam auto-handoff — context approaching the configured threshold]
+
+You are about to be replaced by a fresh session. Do TWO things, in order.
+
+═══ PART 1 — Update your long-term knowledge ═══
+
+You have the whole conversation in context right now, so YOU update your
+own knowledge index (no one else can do it as well). Your knowledge lives at:
+
+  {{META_DIR}}
+
+Layout:
+  meta.md                 ← the INDEX (the only file auto-loaded next time)
+  skills/<slug>/SKILL.md  ← reusable procedures
+  knowledge/<slug>.md     ← stable facts / specs / conventions
+  experiences/<slug>.md   ← lessons from what happened
+
+From THIS conversation, capture anything a future session would want — be
+generous on genuinely reusable signal, strict on chatter. For each item,
+create or UPDATE the matching file (read it first if it exists; merge, don't
+clobber):
+
+- A reusable procedure → skills/<slug>/SKILL.md, written in the
+  /skill-create style: YAML frontmatter with `name` and a `description` that
+  states what it does + "Use when <specific triggers>", then sections:
+  `## Quick start`, `## Workflows` (with checklists), `## Common pitfalls`,
+  optional `## Checklist`. Keep it ≤ 100 lines. No time-sensitive wording.
+- A stable fact / spec / convention / decision → knowledge/<slug>.md.
+- A concrete lesson (a mistake + the fix, a gotcha) → experiences/<slug>.md.
+
+ALSO REVISE what is already there — your index is a living memory, not an
+append-only log. Go through the existing skills/knowledge/experiences and,
+judged against what you now know from THIS conversation:
+
+- If an entry is now WRONG or contradicted (a fact that changed, a step that
+  no longer works, a decision that was reversed) → FIX it in place: correct
+  the wrong part. Don't just bolt a contradiction onto the bottom — a future
+  session must not have to guess which version is true.
+- If an entry is OBSOLETE or superseded (the thing it describes was removed,
+  the approach was abandoned, a newer entry covers it better) → DELETE the
+  file and remove its line from meta.md. Fold any still-true remnant into the
+  entry that replaces it.
+
+Be conservative: correct or delete ONLY on real evidence from this
+conversation that the entry is wrong or superseded. Do NOT delete an entry
+merely because it wasn't used this session — disuse is handled elsewhere;
+absence of mention is not evidence of being wrong.
+
+Then REWRITE meta.md as a concise index — ONLY brief one-line summaries plus
+the relative path to each file. Example shape:
+
+  # <your name> — knowledge index
+  _updated: <date>_
+
+  ## Skills
+  - **deploy-battle-server** — package & ship the battle server to QA/PROD.
+    Use when deploying badminton battle/chat/stream. → skills/deploy-battle-server/SKILL.md
+
+  ## Knowledge
+  - **athena-table-conventions** — naming + partition rules for Athena. → knowledge/athena-table-conventions.md
+
+  ## Experiences
+  - **mid-table-device-attribution-lag** — why install counts lag a day. → experiences/mid-table-device-attribution-lag.md
+
+Keep meta.md SHORT — it is injected verbatim every spawn; the details stay in
+the referenced files, loaded on demand.
+
+{{SIZE_RULE}}
+{{SIZE_STATUS}}
+
+{{LANG_RULE}}
+
+═══ PART 2 — Write the handoff document ═══
+
+Write a handoff document summarising the current conversation so the fresh
+session can continue the work. Save it to the temporary directory of the
+user's OS (NOT the workspace, NOT the meta dir). Reference existing artifacts
+(PRDs, plans, commits, diffs) by path/URL instead of duplicating them. Redact
+secrets / PII.
+
+{{FOCUS_HINT}}
+
+After the handoff file is saved on disk, reply with EXACTLY ONE LINE in this
+exact form (real absolute path), NOTHING ELSE on the line, no formatting:
+
+ATEAM_HANDOFF_WRITTEN=<REPLACE_WITH_REAL_ABSOLUTE_PATH>
+
+Ateam parses this line to spawn the successor. Do not emit it before the
+write succeeds; do not include the placeholder text.

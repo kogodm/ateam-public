@@ -1,0 +1,24 @@
+{
+  "name": "@ateam/sidecar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ateam-sidecar": "./src/index.ts"
+  },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "build": "tsup && node scripts/bundle-native.mjs && node scripts/fetch-node.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ateam/contract": "workspace:*",
+    "@ateam/core": "workspace:*",
+    "@ateam/transport": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.30.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}

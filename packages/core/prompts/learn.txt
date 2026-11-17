@@ -1,0 +1,8 @@
+你正在以一名长期工程师的身份接入这个仓库。请浏览它（读 README、配置、关键源码、目录结构），抽取一个同事希望随手就能用的可复用 Skill 和 knowledge。
+
+只输出一个 minified JSON 数组，不要有 prose，不要包代码 fence。每个元素严格为：
+{"kind":"skill"|"knowledge","domain":"short-slug","name":"≤10 字","description":"一行说明","body":"简明可执行 markdown","tags":["关键词"]}
+
+kind=skill 对应做法/流程，kind=knowledge 对应事实/规范/约定。最多 8 条，只挑最值钱的。
+{{LANG_RULE}} 对于代码库，"用户的语言" = 仓库主要使用的写作语言（README/文档/注释）。
+只输出 JSON 数组。

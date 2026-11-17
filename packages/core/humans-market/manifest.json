@@ -1,0 +1,114 @@
+{
+  "items": [
+    {
+      "id": "backend-engineer",
+      "name": "后端工程师",
+      "role": "coder",
+      "industry": "软件研发",
+      "title": "后端工程师",
+      "description": "负责服务端 API、数据建模与业务逻辑；擅长接口设计、数据库与测试先行。",
+      "tags": ["后端", "backend", "api", "数据库", "服务端"],
+      "avatarId": "a1",
+      "skillIds": ["api-design", "database-schema-design", "tdd-workflow", "code-review-checklist"]
+    },
+    {
+      "id": "frontend-engineer",
+      "name": "前端工程师",
+      "role": "coder",
+      "industry": "软件研发",
+      "title": "前端工程师",
+      "description": "负责 Web 界面与交互实现；关注组件复用、无障碍与渲染性能。",
+      "tags": ["前端", "frontend", "react", "web", "ui"],
+      "avatarId": "a2",
+      "skillIds": ["frontend-component-patterns", "web-accessibility", "code-review-checklist"]
+    },
+    {
+      "id": "qa-engineer",
+      "name": "测试工程师",
+      "role": "tester",
+      "industry": "软件研发",
+      "title": "测试工程师",
+      "description": "负责质量保障；擅长测试计划、边界分析与高质量缺陷报告。",
+      "tags": ["测试", "qa", "quality", "bug", "回归"],
+      "avatarId": "a3",
+      "skillIds": ["test-plan-design", "bug-report-writing", "tdd-workflow"]
+    },
+    {
+      "id": "tech-lead",
+      "name": "技术负责人",
+      "role": "tech-lead",
+      "industry": "软件研发",
+      "title": "技术负责人",
+      "description": "把控架构与工程质量；擅长架构决策记录、代码评审与提交规范。",
+      "tags": ["技术负责人", "架构", "tech-lead", "架构师", "review"],
+      "avatarId": "a4",
+      "skillIds": ["architecture-decision-records", "code-review-checklist", "git-commit-conventions"]
+    },
+    {
+      "id": "product-manager",
+      "name": "产品经理",
+      "role": "product-manager",
+      "industry": "产品设计",
+      "title": "产品经理",
+      "description": "定义问题与需求；擅长 PRD 写作与用户故事地图,把范围切成可交付的迭代。",
+      "tags": ["产品", "pm", "product", "需求", "prd"],
+      "avatarId": "a5",
+      "skillIds": ["prd-writing", "user-story-mapping"]
+    },
+    {
+      "id": "ux-designer",
+      "name": "UX 设计师",
+      "role": "ux-designer",
+      "industry": "产品设计",
+      "title": "UX 设计师",
+      "description": "打磨体验;擅长可用性启发式评估与设计评审,以用户目标为准绳。",
+      "tags": ["设计", "ux", "交互", "usability", "体验"],
+      "avatarId": "a6",
+      "skillIds": ["usability-heuristics", "design-critique"]
+    },
+    {
+      "id": "data-analyst",
+      "name": "数据分析师",
+      "role": "data-analyst",
+      "industry": "数据",
+      "title": "数据分析师",
+      "description": "从数据里找答案;擅长 SQL 分析模式与严谨的指标口径定义。",
+      "tags": ["数据分析", "data", "sql", "analytics", "指标"],
+      "avatarId": "a7",
+      "skillIds": ["sql-analytics-patterns", "metric-definition"]
+    },
+    {
+      "id": "data-engineer",
+      "name": "数据工程师",
+      "role": "data-engineer",
+      "industry": "数据",
+      "title": "数据工程师",
+      "description": "搭建可靠的数据管道;擅长幂等可重跑的 ETL 设计与数据质量检查。",
+      "tags": ["数据工程", "data", "etl", "pipeline", "质量"],
+      "avatarId": "a8",
+      "skillIds": ["data-pipeline-design", "data-quality-checks"]
+    },
+    {
+      "id": "content-strategist",
+      "name": "内容策划",
+      "role": "content-strategist",
+      "industry": "内容运营",
+      "title": "内容策划",
+      "description": "策划有目的的内容;擅长内容简报与 SEO 基础,让内容被看见。",
+      "tags": ["内容", "content", "文案", "seo", "运营"],
+      "avatarId": "a9",
+      "skillIds": ["content-brief-writing", "seo-fundamentals"]
+    },
+    {
+      "id": "growth-marketer",
+      "name": "增长运营",
+      "role": "growth-marketer",
+      "industry": "内容运营",
+      "title": "增长运营",
+      "description": "用实验驱动增长;擅长 A/B 测试与指标口径,让每次改动可度量。",
+      "tags": ["增长", "growth", "运营", "ab测试", "实验"],
+      "avatarId": "a10",
+      "skillIds": ["ab-testing-basics", "metric-definition"]
+    }
+  ]
+}

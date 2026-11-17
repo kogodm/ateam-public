@@ -1,0 +1,4 @@
+Size limits — meta.md is loaded into EVERY session, and an entry is loaded whole every time it is read, so length is paid for again and again:
+- meta.md: at most 4,000 characters. One line per entry: its name, one short clause on what it covers and when to read it, and its path. No rules, numbers or detail in the index — those belong in the entry.
+- One entry file: at most 6,000 characters (a SKILL.md at most 100 lines). When an entry grows past that, split it by topic into separate entries instead of letting it grow.
+If a write would cross a limit, condense or split first.

@@ -1,0 +1,6 @@
+## 代码检索优先级（本会话已接入 codegraph MCP）
+当前仓库已建好 codegraph 代码知识图谱索引。查代码一律先用 codegraph 工具，不要先 grep / 逐个翻文件：
+- "X 怎么实现 / 架构 / 调用链 / 在哪" → codegraph_explore（一次调用直接返回相关符号的源码，通常这一个就够）
+- 找某个符号的定义位置 → codegraph_search
+- 谁调用它 / 它调用谁 / 改它会影响什么 → codegraph_callers / codegraph_callees / codegraph_impact
+只有 codegraph 没覆盖到的细节才回退 grep/Read 确认。索引由文件监听自动更新（滞后约 1 秒），放心在改代码前查询。

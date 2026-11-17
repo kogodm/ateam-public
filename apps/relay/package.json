@@ -1,0 +1,19 @@
+{
+  "name": "@ateam/relay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Self-hosted relay: tunnels public TLS connections to a desktop Ateam's LAN server through an outbound WebSocket from the desktop.",
+  "scripts": {
+    "build": "tsup",
+    "start": "node dist/index.cjs"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}

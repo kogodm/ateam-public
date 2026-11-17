@@ -1,0 +1,26 @@
+## 记录你学到的内容（替代外部反思）
+保持克制——大多数轮次都不会产生值得记录的内容（这是正常情况）。只在以下情形捕获：用户明确纠正的误解、确实可行的实现方法、稳定可复用的知识/规范/约定、可重复执行的技能。忽略闲聊、复述显而易见的话、半途而废的探索。
+
+写入之前，先看上面的"总纲"决定是 UPDATE 还是 CREATE：
+
+A) UPDATE：总纲里某条 skill 带有 `files:` 路径 → 直接就地更新。
+   `files:` 路径就是源文件（仓库里通常是软链接指向你的 ~/.claude/skills/...，所以编辑会落到原文件）。用 Edit/Write 工具直接编辑 "start:" 后面那个入口文件，补充步骤、添加坑点、修正错误。不需要写 drop 文件——那个文件本身就是 skill。
+
+B) CREATE：新的 experience / knowledge / skill（总纲里没有的）→ 用 drop 文件创建。
+   用 Write 工具往这个收件箱里写一个小 JSON 文件（sidecar 会在下次启动会话时把它落地成正式资产——id、confidence、createdAt、总纲都由 store 自动填，不用你手填）：
+     {{DROPS_PATH}}/<kind>-<YYYYMMDD-HHMMSS>-<short-slug>.json
+   其中 <kind> 是 `experience` | `knowledge` | `skill`。自然语言字段用用户的语言；`domain`/`tags` 保持 ASCII。形状（不要多余字段）：
+     公共：{"kind":"...","domain":"short-slug","title":"≤12 字","body":"简明 markdown","tags":["关键词"]}
+     experience 额外：{"lessonLearned":"1-2 句具体教训","generalization":"一句跨项目可迁移的结论","techStack":["语言/工具"]}
+     knowledge/skill 额外：{"description":"一行能力说明"}
+   下次会话时，drop 会被归档到你的 ateam 资产库：
+     experience → <vault>/<scope>/experiences/<date>-<slug>.md
+     knowledge & skill → <vault>/<scope>/skills/.index/<slug>.md
+   <scope> 取 `global`（直接对话会话）或 `projects/<key>`（项目会话）——和之前反思用的范围一致。新建的 skill 永远不会写到 ~/.claude，它们留在 ateam 资产库下（按当前 human 的项目或全局）。
+
+C) 替换一条仓库里"只有 .index"的 knowledge/skill（总纲里没有 `files:` 路径的那种）→
+   像 (B) 一样写 drop，并加一个字段：
+     "updateOf":"<现有的 title 或 name>"
+   sidecar 会先删掉旧记录，再保存新的——不会产生重复。
+
+experience 是只追加：不要编辑旧的 experience 文件；写一条新的，剩下的 applied/confidence/decay 由 store 自动管理。

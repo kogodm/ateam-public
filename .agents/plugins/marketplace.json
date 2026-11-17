@@ -1,0 +1,12 @@
+{
+  "name": "ateam",
+  "interface": { "displayName": "Ateam" },
+  "plugins": [
+    {
+      "name": "ateam",
+      "source": { "source": "local", "path": "./plugins/ateam" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_USE" },
+      "category": "Productivity"
+    }
+  ]
+}

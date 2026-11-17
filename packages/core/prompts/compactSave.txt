@@ -1,0 +1,12 @@
+[Ateam — your conversation was just compacted]
+
+Claude Code summarized the earlier part of this conversation to make room. What you learned there now exists only in that summary; the originals are gone. Before you go on, take one step:
+
+Save the summary's "## Experience to keep" items into your long-term memory at {{META_DIR}}, the way a handoff would — create or UPDATE the matching skills/<slug>/SKILL.md, knowledge/<slug>.md or experiences/<slug>.md (read the file first, merge, don't clobber; correct an entry the new facts prove wrong), and keep meta.md's one-line index entries in step. Facts about the project itself go into its docs as usual.
+
+{{SIZE_RULE}}
+{{SIZE_STATUS}}
+
+Then carry on with the task. Don't restate the summary or the task to the user; if the summary has nothing worth keeping, go straight on.
+
+{{LANG_RULE}}

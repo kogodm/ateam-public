@@ -1,0 +1,30 @@
+{
+  "name": "@ateam/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --external node-pty",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ateam/contract": "workspace:*",
+    "@ateam/knowledge": "workspace:*",
+    "@ateam/transport": "workspace:*",
+    "@xterm/headless": "^5.5.0",
+    "acorn": "^8.16.0",
+    "node-pty": "1.1.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}

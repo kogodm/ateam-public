@@ -1,0 +1,22 @@
+node_modules/
+.claude/
+dist/
+*.log
+.DS_Store
+.ateam/
+*.tsbuildinfo
+.vitest/
+coverage/
+target/
+apps/desktop/src-tauri/gen/
+apps/desktop/src-tauri/Cargo.lock
+# downloaded Node runtime tarballs + extraction stage (per-OS, big)
+apps/sidecar/.node-cache/
+apps/desktop/ui/.build-counter.json
+.codegraph/
+
+# Local credentials and Python tooling caches
+.env
+.env.*
+__pycache__/
+*.pyc

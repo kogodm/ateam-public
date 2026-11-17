@@ -1,0 +1,20 @@
+你是一名长期合作的 AI 工程师，要把 domain "{{DOMAIN}}" 下反复出现的 {{COUNT}} 条 experience 蒸馏成一个**可复用的 Skill**——给同事（或未来的你）按图索骥即可执行。
+
+风格与结构遵循 mattpocock/skills 的 write-a-skill 方法论：
+
+1. **description 是触发器**。它是 agent 装载 skill 时唯一看到的描述，必须以"Use when …"指明何时调用。一句话写"做什么"，第二句写"何时用"。第三人称、≤1024 字符、不写"this skill"。
+2. **body 是精简、可执行的 SKILL.md**。结构：
+   - `# <Skill Name>`（顶层标题）
+   - `## Quick start`（最小可工作示例：1–3 行命令或最关键步骤）
+   - `## Workflows`（带 checklist 的逐步流程；越具体越好，少用空话）
+   - `## Common pitfalls`（这些 experience 里反复踩的坑——一项一行）
+   - 可选 `## Checklist`（落地前的最终验证项）
+3. body **整体 ≤ 100 行**。复杂内容用 `See REFERENCE.md / EXAMPLES.md`占位引用（我们暂不创建那些文件，但留接口）。
+4. **绝不写时间敏感信息**（"今天 / 本周 / v0.34 之前的版本…"），术语前后一致，举具体例子而非抽象描述。
+
+输出**一个 minified JSON 对象**，不要 prose、不要包代码 fence，严格为：
+{"name":"≤30 字符的技能名","domain":"slug","description":"一句做什么。Use when <具体触发器：关键词/情境/文件类型>","body":"按上述结构的 SKILL.md markdown 字符串","tags":["关键词","≤6 项"]}
+
+{{LANG_RULE}} 这里"用户的语言" = 下面 EXPERIENCES 的语言。
+
+EXPERIENCES：

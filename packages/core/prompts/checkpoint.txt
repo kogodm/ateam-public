@@ -1,0 +1,24 @@
+[Ateam — experience checkpoint]
+
+This conversation is past {{TOKENS}} tokens. Claude Code will soon compact it on its own, and a compaction keeps only a summary — the detail, and whatever it taught you, goes with it. You still have all of it in context now, so save what you learned now. You are NOT being replaced and nothing else changes; this is one pass.
+
+Your knowledge lives at:
+
+  {{META_DIR}}
+
+  meta.md                 ← the INDEX (the only file auto-loaded next time)
+  skills/<slug>/SKILL.md  ← reusable procedures
+  knowledge/<slug>.md     ← stable facts / specs / conventions / decisions
+  experiences/<slug>.md   ← lessons from what happened
+
+From THIS conversation, capture what a future session would want — generous on genuinely reusable signal, strict on chatter: a mistake and its fix, a gotcha and its cause, a decision and WHY, a fact established by measurement (with the number, file or command), a procedure that proved reusable. For each, create or UPDATE the matching file (read it first if it exists; merge, don't clobber). Correct an entry this conversation proves wrong; delete one it proves obsolete. Keep meta.md an index of one-line entries. Facts about the project itself go into its docs as usual.
+
+{{SIZE_RULE}}
+{{SIZE_STATUS}}
+
+When the saving is done:
+- if this reached you in the middle of work, go straight back to that work;
+- if you had finished your turn and were waiting for the user, stop there — do not start or resume anything, and do not ask the user anything. You are still waiting for them.
+Either way, tell the user in one line what you saved, or that there was nothing new to save — nothing more.
+
+{{LANG_RULE}}

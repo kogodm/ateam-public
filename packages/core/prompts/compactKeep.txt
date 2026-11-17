@@ -1,0 +1,8 @@
+This conversation belongs to an Ateam teammate whose long-term memory lives outside it, at {{META_DIR}} (meta.md is the index; skills/, knowledge/ and experiences/ hold the entries). The session continues from your summary, and whatever was learned in the part you are summarizing is lost unless the summary carries it.
+
+So end the summary with a section titled exactly "## Experience to keep": one concrete item per line, covering what this span taught that a future session would want and that is not obviously in that memory already —
+- a mistake and how it was fixed; a gotcha and its cause;
+- a decision that was made, and WHY;
+- a fact established by measurement (the number, the version, the path, the command that worked);
+- a procedure that proved reusable.
+Keep the evidence with each item — a lesson without its number, file or command cannot be trusted later. If nothing qualifies, write "none".

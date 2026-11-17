@@ -1,0 +1,15 @@
+.mcp-actions { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.mcp-actions button, .mcp-client button { padding: 8px 12px; border: 1px solid var(--border, #555); border-radius: 6px; background: var(--surface, #25252a); color: inherit; cursor: pointer; }
+.mcp-actions button:disabled { opacity: .5; cursor: default; }
+.mcp-client { padding: 16px 0; border-bottom: 1px solid var(--border, #555); overflow-wrap: anywhere; }
+.mcp-client span { margin-left: 12px; opacity: .7; }
+.mcp-client div { margin: 8px 0; }
+.mcp-approval { width: min(560px, calc(100vw - 48px)); max-height: calc(100dvh - 64px); overflow-y: auto; border: 1px solid var(--border, #555); border-radius: 12px; padding: 24px; background: var(--bg, #202024); color: var(--text, #eee); box-shadow: 0 16px 64px #0006; }
+.mcp-approval::backdrop { background: #0007; }
+.mcp-approval h2 { margin-top: 0; }
+.mcp-approval p { line-height: 1.5; }
+.mcp-projects { max-height: 240px; overflow-y: auto; }
+.mcp-projects label { display: flex; align-items: flex-start; gap: 8px; margin: 12px 0; overflow-wrap: anywhere; }
+.mcp-projects input { flex: none; margin-top: 4px; }
+.mcp-pairing-code { font-size: 28px; font-weight: 600; letter-spacing: 6px; margin: 12px 0; }
+.mcp-caps { opacity: .8; font-size: 12px; }

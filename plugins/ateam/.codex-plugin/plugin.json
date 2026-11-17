@@ -1,0 +1,7 @@
+{
+  "name": "ateam",
+  "version": "0.1.0",
+  "description": "Plan in Chat and collaborate with existing Ateam CLI sessions, with project access approved in Ateam.",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
+}

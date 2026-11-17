@@ -1,0 +1,1 @@
+语言：所有自然语言字段（name、description、narrative、lesson_learned、generalization、body 正文）必须使用用户在下文中主要使用的语言（从下面的文本里推断；例如用户用中文则用中文）。机器字段保持 ASCII："domain" 是小写短 slug，"tags" 是小写关键词，代码/标识符原样不译。

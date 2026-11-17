@@ -1,0 +1,235 @@
+{
+  "items": [
+    {
+      "id": "tdd-workflow",
+      "name": "TDD workflow",
+      "description": "Red → Green → Refactor 节奏与覆盖率检查清单；为新功能/缺陷修复提供测试先行的执行步骤。",
+      "category": "软件研发",
+      "tags": ["testing", "tdd", "workflow"],
+      "source": "file://builtin/tdd-workflow",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "git-commit-conventions",
+      "name": "Git commit conventions",
+      "description": "feat/fix/refactor/… 的 type 选择、summary 写法、正文要解释 why 而非 what。",
+      "category": "软件研发",
+      "tags": ["git", "workflow", "commits"],
+      "source": "file://builtin/git-commit-conventions",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "code-review-checklist",
+      "name": "Code review checklist",
+      "description": "意图核对、正确性、复杂度、命名、安全等 10 条 review 维度 + 检查清单。",
+      "category": "软件研发",
+      "tags": ["review", "quality", "security"],
+      "source": "file://builtin/code-review-checklist",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "api-design",
+      "name": "API 设计",
+      "description": "REST 资源命名、状态码、分页过滤、错误响应结构、幂等性、版本化与限流的设计要点。",
+      "category": "软件研发",
+      "tags": ["api", "backend", "rest", "design"],
+      "source": "file://builtin/api-design",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "database-schema-design",
+      "name": "数据库模式设计",
+      "description": "规范化取舍、索引策略、数据类型、零停机迁移、约束优先于应用层校验。",
+      "category": "软件研发",
+      "tags": ["database", "schema", "sql", "design"],
+      "source": "file://builtin/database-schema-design",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "frontend-component-patterns",
+      "name": "前端组件模式",
+      "description": "受控/非受控、组合优于配置、状态提升、副作用隔离、可复用 hook 与渲染性能。",
+      "category": "软件研发",
+      "tags": ["frontend", "react", "components"],
+      "source": "file://builtin/frontend-component-patterns",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "web-accessibility",
+      "name": "Web 无障碍",
+      "description": "语义化 HTML、键盘可达、焦点管理、ARIA 用法、对比度与屏幕阅读器测试。",
+      "category": "软件研发",
+      "tags": ["frontend", "a11y", "accessibility"],
+      "source": "file://builtin/web-accessibility",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "test-plan-design",
+      "name": "测试计划设计",
+      "description": "从需求提取测试点、等价类/边界值、测试金字塔分层、优先级与回归范围。",
+      "category": "软件研发",
+      "tags": ["testing", "qa", "planning"],
+      "source": "file://builtin/test-plan-design",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "bug-report-writing",
+      "name": "缺陷报告",
+      "description": "标题、最小复现步骤、期望 vs 实际、环境信息、严重度 vs 优先级、附证据。",
+      "category": "软件研发",
+      "tags": ["qa", "bug", "reporting"],
+      "source": "file://builtin/bug-report-writing",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "architecture-decision-records",
+      "name": "架构决策记录 (ADR)",
+      "description": "ADR 模板(背景/决策/后果/备选)、何时该写、编号不可变与 superseded 标记。",
+      "category": "软件研发",
+      "tags": ["architecture", "adr", "documentation"],
+      "source": "file://builtin/architecture-decision-records",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "prd-writing",
+      "name": "PRD 写作",
+      "description": "问题先于方案、目标与非目标、优先级、验收标准、度量指标与范围边界。",
+      "category": "产品设计",
+      "tags": ["product", "prd", "requirements"],
+      "source": "file://builtin/prd-writing",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "user-story-mapping",
+      "name": "用户故事地图",
+      "description": "用户旅程横轴、任务分解、切片 MVP、INVEST 原则写 story 与验收条件。",
+      "category": "产品设计",
+      "tags": ["product", "agile", "stories"],
+      "source": "file://builtin/user-story-mapping",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "usability-heuristics",
+      "name": "可用性启发式评估",
+      "description": "Nielsen 十大启发式落地、启发式走查、严重度评级与改进项转化。",
+      "category": "产品设计",
+      "tags": ["ux", "usability", "heuristics"],
+      "source": "file://builtin/usability-heuristics",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "design-critique",
+      "name": "设计评审",
+      "description": "以用户目标为准绳、对事不对人、提问式反馈、区分偏好与可用性问题。",
+      "category": "产品设计",
+      "tags": ["design", "ux", "review"],
+      "source": "file://builtin/design-critique",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "sql-analytics-patterns",
+      "name": "SQL 分析模式",
+      "description": "窗口函数、CTE、join 去重、日期分桶、执行计划意识与可复现留痕。",
+      "category": "数据",
+      "tags": ["data", "sql", "analytics"],
+      "source": "file://builtin/sql-analytics-patterns",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "metric-definition",
+      "name": "指标定义",
+      "description": "明确口径(分子/分母/时间窗/去重)、北极星 vs 护栏、避免虚荣指标。",
+      "category": "数据",
+      "tags": ["data", "metrics", "analytics"],
+      "source": "file://builtin/metric-definition",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "data-pipeline-design",
+      "name": "数据管道设计",
+      "description": "幂等可重跑、增量 vs 全量、schema 演进、失败重试告警与数据血缘。",
+      "category": "数据",
+      "tags": ["data", "pipeline", "etl"],
+      "source": "file://builtin/data-pipeline-design",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "data-quality-checks",
+      "name": "数据质量检查",
+      "description": "完整性/唯一性/一致性/及时性/有效性五维、跨表对账与阻断策略。",
+      "category": "数据",
+      "tags": ["data", "quality", "validation"],
+      "source": "file://builtin/data-quality-checks",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "content-brief-writing",
+      "name": "内容简报",
+      "description": "受众与意图、核心信息、结构大纲、关键词、CTA 与成功指标。",
+      "category": "内容运营",
+      "tags": ["content", "writing", "marketing"],
+      "source": "file://builtin/content-brief-writing",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "seo-fundamentals",
+      "name": "SEO 基础",
+      "description": "搜索意图匹配、标题与 meta、信息架构内链、页面速度与效果衡量。",
+      "category": "内容运营",
+      "tags": ["content", "seo", "growth"],
+      "source": "file://builtin/seo-fundamentals",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    },
+    {
+      "id": "ab-testing-basics",
+      "name": "A/B 测试基础",
+      "description": "单一变量假设、样本量与功效、随机分流、显著性与护栏指标。",
+      "category": "内容运营",
+      "tags": ["growth", "experiment", "ab-testing"],
+      "source": "file://builtin/ab-testing-basics",
+      "kind": "tree",
+      "entry": "SKILL.md",
+      "builtin": true
+    }
+  ]
+}

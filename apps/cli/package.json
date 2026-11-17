@@ -1,0 +1,22 @@
+{
+  "name": "@ateam/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ateam-serve": "./src/index.ts"
+  },
+  "scripts": {
+    "serve": "tsx src/index.ts serve",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ateam/core": "workspace:*",
+    "@ateam/knowledge": "workspace:*",
+    "@ateam/transport": "workspace:*",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

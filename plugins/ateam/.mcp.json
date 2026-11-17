@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ateam": {
+      "type": "stdio",
+      "command": "/bin/sh",
+      "args": [
+        "-c",
+        "exec '/Applications/Ateam.app/Contents/Resources/sidecar/node' '/Applications/Ateam.app/Contents/Resources/sidecar/mcp-desktop.cjs' --credential \"$HOME/.ateam/external-mcp/chatgpt.json\" --home \"$HOME/.ateam\""
+      ]
+    }
+  }
+}
