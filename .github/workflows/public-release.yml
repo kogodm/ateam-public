@@ -60,7 +60,9 @@ jobs:
             ~/.cargo/git
             apps/desktop/src-tauri/target
           key: public-cargo-${{ matrix.label }}-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}-${{ github.sha }}
-          restore-keys: public-cargo-${{ matrix.label }}-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}-
+          restore-keys: |
+            public-cargo-${{ matrix.label }}-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}-
+            public-cargo-${{ matrix.label }}-
       - name: Install Linux prerequisites
         if: runner.os == 'Linux'
         run: |

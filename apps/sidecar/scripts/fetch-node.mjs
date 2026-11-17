@@ -95,8 +95,10 @@ async function extract(spec, archivePath, outDir) {
   } else if (spec.extract === 'tar-xz') {
     await exec('tar', ['-xJf', archivePath, '-C', outDir]);
   } else if (spec.extract === 'zip') {
-    // bsdtar (shipped with Win10+) handles zip via -xf with auto-detection.
-    await exec('tar', ['-xf', archivePath, '-C', outDir]);
+    // Git Bash's GNU tar interprets D:\\... as a remote host and cannot
+    // unpack this ZIP. Use Windows' bundled bsdtar explicitly.
+    const windowsTar = join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
+    await exec(windowsTar, ['-xf', archivePath, '-C', outDir]);
   }
 }
 

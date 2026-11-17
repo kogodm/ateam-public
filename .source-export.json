@@ -6,7 +6,7 @@
       "mode": 420
     },
     ".github/workflows/public-release.yml": {
-      "sha256": "387d3c707d65b12f107a87080e495b6f831cb0a43a570131c876d0ea1261bcca",
+      "sha256": "feb1a9f3852ff621a4a3e13e070c775a5ff3a03bd9b57cf315a73fbcb34d35f1",
       "mode": 420
     },
     ".github/workflows/source-check.yml": {
@@ -86,7 +86,7 @@
       "mode": 420
     },
     "apps/desktop/src-tauri/Cargo.toml": {
-      "sha256": "98f87a8248c8895d9038c7c6e1ee3532759b342e95b95c2241caa9343fd41cc0",
+      "sha256": "29f3c034767b56aa42998e7576bf30fa8556d338729894c8614bd97f063514e5",
       "mode": 420
     },
     "apps/desktop/src-tauri/Info.plist": {
@@ -326,7 +326,7 @@
       "mode": 420
     },
     "apps/desktop/src-tauri/tauri.conf.json": {
-      "sha256": "f4806782aa7522db2c55368361a6c9f34743bdcc58f915eed52143426e3c0ffc",
+      "sha256": "9565a5fa464fb9e98395ad32ac91709e95df2de819d6d555787e0583cecee670",
       "mode": 420
     },
     "apps/desktop/src-tauri/tauri.debug.conf.json": {
@@ -1538,7 +1538,7 @@
       "mode": 420
     },
     "apps/sidecar/scripts/fetch-node.mjs": {
-      "sha256": "315b840310be0757ba84fb4203ece395660e0b2924bec3fb44dc87c2ca88c4cf",
+      "sha256": "c95973647120f917b073904b757bcd9fb03134492d5ddd80e41baba37b4062a8",
       "mode": 420
     },
     "apps/sidecar/src/cloudflared.ts": {
