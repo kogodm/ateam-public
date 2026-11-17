@@ -5,6 +5,10 @@
       "sha256": "dba91e04f5b34e99868d87219309a138aa3be30bcc635d0a47e2dabcc2784169",
       "mode": 420
     },
+    ".github/workflows/public-release.yml": {
+      "sha256": "387d3c707d65b12f107a87080e495b6f831cb0a43a570131c876d0ea1261bcca",
+      "mode": 420
+    },
     ".github/workflows/source-check.yml": {
       "sha256": "d5a2e0cb581a2e17f1f2de9b023f2ec71750d78a366b5c96fc798094f4687646",
       "mode": 420
@@ -82,7 +86,7 @@
       "mode": 420
     },
     "apps/desktop/src-tauri/Cargo.toml": {
-      "sha256": "c9b4db89d095cea6a1455b987bea4a8b5300215a66658e1e0ce19abe8e453d1b",
+      "sha256": "98f87a8248c8895d9038c7c6e1ee3532759b342e95b95c2241caa9343fd41cc0",
       "mode": 420
     },
     "apps/desktop/src-tauri/Info.plist": {
@@ -322,7 +326,7 @@
       "mode": 420
     },
     "apps/desktop/src-tauri/tauri.conf.json": {
-      "sha256": "1cd5929424852eaab384dc6c07fb6a2bbaccf91820390d33c233f521fa8ba2af",
+      "sha256": "f4806782aa7522db2c55368361a6c9f34743bdcc58f915eed52143426e3c0ffc",
       "mode": 420
     },
     "apps/desktop/src-tauri/tauri.debug.conf.json": {

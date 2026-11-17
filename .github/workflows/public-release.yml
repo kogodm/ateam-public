@@ -1,0 +1,134 @@
+name: public-release
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  installers:
+    if: github.repository == 'kogodm/ateam-public'
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: macos-arm64
+            os: macos-15
+            arch: arm64
+            bundles: dmg
+            patterns: dmg/*.dmg
+          - label: windows-x64
+            os: windows-2022
+            arch: x64
+            bundles: nsis,msi
+            patterns: nsis/*.exe msi/*.msi
+          - label: linux-x64
+            os: ubuntu-22.04
+            arch: x64
+            bundles: appimage,deb
+            patterns: appimage/*.AppImage deb/*.deb
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            apps/desktop/src-tauri/target
+          key: public-cargo-${{ matrix.label }}-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}-${{ github.sha }}
+          restore-keys: public-cargo-${{ matrix.label }}-${{ hashFiles('apps/desktop/src-tauri/Cargo.toml') }}-
+      - name: Install Linux prerequisites
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev libxdo-dev libssl-dev patchelf build-essential curl wget file
+      - run: pnpm install --frozen-lockfile
+      - name: Validate version and disable updater artifacts
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const base = 'apps/desktop/src-tauri/';
+          const config = JSON.parse(fs.readFileSync(base + 'tauri.conf.json', 'utf8'));
+          const cargo = fs.readFileSync(base + 'Cargo.toml', 'utf8').match(/^version = "([^"]+)"/m)?.[1];
+          if (cargo !== config.version) throw new Error('Cargo/Tauri versions differ');
+          if (process.arch !== process.env.EXPECTED_ARCH) throw new Error('Unexpected runner architecture');
+          if (process.env.RELEASE_TAG && process.env.RELEASE_TAG !== `v${config.version}`) throw new Error('Tag/version mismatch');
+          const v = config.version.match(/^(\d+)\.(\d+)\.(\d+)(?:-rc\.(\d+))?$/);
+          if (!v) throw new Error('Expected stable or rc.N version');
+          const wixVersion = [v[1], v[2], v[3], v[4] || '0'].join('.');
+          fs.writeFileSync(base + 'tauri.ci.conf.json', JSON.stringify({bundle: {createUpdaterArtifacts: false, windows: {wix: {version: wixVersion}}}}));
+          NODE
+      - run: pnpm typecheck
+      - run: pnpm exec vitest run packages/contract/src/contract.test.ts
+      - name: Build installers
+        run: |
+          rm -rf apps/desktop/src-tauri/target/release/bundle
+          touch apps/desktop/src-tauri/src/lib.rs
+          pnpm --filter @ateam/desktop exec tauri build --config src-tauri/tauri.ci.conf.json --bundles '${{ matrix.bundles }}'
+      - name: Verify resources and prepare checksums
+        env:
+          PATTERNS: ${{ matrix.patterns }}
+          PLATFORM_LABEL: ${{ matrix.label }}
+        run: |
+          python <<'PY'
+          import hashlib, os, pathlib, shutil
+          root = pathlib.Path('.')
+          ui = root / 'apps/desktop/ui/dist'
+          shipped = root / 'apps/sidecar/dist/ui'
+          def hashes(path):
+              return {str(p.relative_to(path)): hashlib.sha256(p.read_bytes()).hexdigest() for p in path.rglob('*') if p.is_file()}
+          assert (ui / 'index.html').is_file(), 'Missing built UI'
+          assert hashes(ui) == hashes(shipped), 'Sidecar UI differs from desktop UI'
+          sidecar = root / 'apps/sidecar/dist'
+          for name in ['index.cjs', 'mcp-desktop.cjs', 'mcp-tasks.cjs', 'mcp-peers.cjs']:
+              assert (sidecar / name).is_file(), f'Missing {name}'
+          assert (sidecar / ('node.exe' if os.name == 'nt' else 'node')).is_file(), 'Missing Node runtime'
+          output = root / 'release-assets'
+          output.mkdir()
+          bundle = root / 'apps/desktop/src-tauri/target/release/bundle'
+          sums = []
+          for pattern in os.environ['PATTERNS'].split():
+              matches = list(bundle.glob(pattern))
+              assert len(matches) == 1, f'Expected exactly one installer for {pattern}, got {len(matches)}'
+              artifact = matches[0]
+              assert artifact.stat().st_size > 1_000_000, f'Installer too small: {artifact.name}'
+              shutil.copyfile(artifact, output / artifact.name)
+              sums.append(f'{hashlib.sha256(artifact.read_bytes()).hexdigest()}  {artifact.name}')
+          (output / f'SHA256SUMS-{os.environ["PLATFORM_LABEL"]}.txt').write_text('\n'.join(sums) + '\n')
+          print('\n'.join(sums))
+          PY
+      - name: Attach installers to GitHub Release only
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          make_latest: false
+          fail_on_unmatched_files: true
+          files: release-assets/*
