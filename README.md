@@ -46,7 +46,30 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
 - Resume, recall injection, MCP and handoff capabilities vary by provider and
   installed CLI version; feature parity across all providers is not promised.
 
-### 5. Humans: accumulated knowledge with correction
+### 5. Cross-provider context handoff and sharing
+
+- Continue the same task with another provider instead of explaining the project
+  again. For example: start with Claude, continue implementation in Codex, then
+  take the conversation into Cursor CLI.
+- **Switch model → another provider** converts the readable conversation between
+  Claude, Codex and Cursor into a new native session for the target CLI. This
+  path reads local history without asking the source model to summarize again,
+  so it can help when that provider has run out of quota.
+- **Handoff** is a separate option: ask the current model to prepare a task
+  briefing and start a successor, optionally using a different provider.
+- Supported sessions can also exchange task instructions, findings and review
+  feedback through the peers MCP while remaining separate sessions. Messages do
+  not grant extra permissions to the receiving session.
+- Preserve the project, Human identity and source transcript; the source session
+  is retired only after the successor starts successfully. Other provider pairs
+  use a text/Markdown continuation path rather than native history conversion.
+
+Migration is text-first: tool activity becomes labeled historical evidence,
+not tool calls to replay. Hidden reasoning/system instructions, running tools,
+sub-agent processes and image pixels are not transferred. The target provider's
+own tools, permissions and context-window limits still apply.
+
+### 6. Humans: accumulated knowledge with correction
 
 - Each Human has a persistent identity, responsibilities, knowledge, skills and experience.
 - Capture useful lessons and reuse them in later sessions instead of relearning them.
@@ -55,7 +78,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
 - A model session ending does not erase the teammate's accumulated project knowledge.
 - Stored knowledge remains reviewable; accumulation is not a guarantee of correctness.
 
-### 6. Continue from desktop, phone, tablet or browser
+### 7. Continue from desktop, phone, tablet or browser
 
 - Inspect sessions and execution results from local desktop and browser/mobile surfaces.
 - Use LAN access locally or authorized Remote/Relay access across networks.
@@ -63,7 +86,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
   development still happens on your own machine.
 - Remote access and optional synchronization require explicit account/project permissions.
 
-### 7. Local development from web AI clients
+### 8. Local development from web AI clients
 
 - External MCP lets a web AI coordinator discover authorized local projects and sessions.
 - Read/search code, inspect Git changes, run tests and commands, and commit/push when authorized.
@@ -74,7 +97,7 @@ See [LICENSE](LICENSE). Do not describe this license as unrestricted open source
   a compatible MCP client or bridge; native Gemini web connectivity is not claimed
   as verified here. Client plans and tool availability depend on the provider.
 
-### 8. Reduce CLI model calls and token consumption
+### 9. Reduce CLI model calls and token consumption
 
 - Reading files, checking logs, running tests and executing an already-decided
   command need not trigger another CLI model reasoning and response cycle.
