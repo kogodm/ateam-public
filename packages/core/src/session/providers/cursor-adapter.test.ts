@@ -44,7 +44,7 @@ const buildArgs = (overrides: Partial<ProviderBuildArgs> = {}) =>
     sessionId: 'ateam-session',
     sessionName: 'ignored name',
     cwd: '/project',
-    appendSystemPrompt: 'ignored recall',
+    appendSystemPrompt: '',
     settingsJson: '{"ignored":true}',
     mcpConfigPath: '',
     model: 'claude-opus',
@@ -147,10 +147,36 @@ describe('Cursor CLI provider adapter', () => {
       settingsJson: '{"dangerous":true}',
       mcpConfigPath: '',
     });
+    // Resume alone must not submit recall as a new user turn.
     expect(args).toEqual(['--resume=thread']);
     expect(args.join(' ')).not.toMatch(
       /--(?:force|trust|approve-mcps|session-id|name|append-system-prompt|mcp-config|settings)/,
     );
+  });
+
+  it('folds Human recall into the positional prompt on fresh launch and with an existing first message', () => {
+    const fresh = buildArgs({ appendSystemPrompt: 'skills index' });
+    expect(fresh).toHaveLength(1);
+    expect(fresh[0]).toContain('<ateam_human_recall>');
+    expect(fresh[0]).toContain('skills index');
+    expect(fresh[0]).toContain('</ateam_human_recall>');
+
+    const withBody = buildArgs({
+      appendSystemPrompt: 'skills index',
+      initialPrompt: 'Continue the migrated task',
+    });
+    expect(withBody[0]).toMatch(
+      /<ateam_human_recall>\s*skills index\s*<\/ateam_human_recall>\s*\n\nContinue the migrated task/,
+    );
+
+    const resumedWithBody = buildArgs({
+      resumeSessionId: 'thread',
+      appendSystemPrompt: 'skills index',
+      initialPrompt: 'Continue',
+    });
+    expect(resumedWithBody[0]).toBe('--resume=thread');
+    expect(resumedWithBody[1]).toContain('<ateam_human_recall>');
+    expect(resumedWithBody[1]).toContain('Continue');
   });
 
   it('mounts the existing session MCP config through a private plugin directory', () => {

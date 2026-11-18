@@ -864,7 +864,9 @@ export class SessionManager extends EventEmitter {
     // enabled). One combined config so both coexist.
     if (codegraphEnabled()) ensureCodegraphInit(cwd);
     const mcpConfigPath = writeSessionMcpConfig(sessionId, cwd, args.chat);
-    // ⑦ recall: the Human's accumulated memory injected as a system prompt.
+    // ⑦ recall: the Human's accumulated memory. Claude gets it via
+    // --append-system-prompt; Codex via developer_instructions; Cursor folds
+    // it into the positional initial prompt (stream hides the wrapper tag).
     // When codegraph is wired in, a usage nudge follows — without it claude
     // ignores the MCP tools and greps out of habit. extraSystemPrompt (the
     // auto-handoff successor's doc) comes last.

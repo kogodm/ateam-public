@@ -5,6 +5,17 @@ import type { Rpc } from './rpc';
 import { type TuiPicker, parsePicker } from './tuiPicker';
 
 const pause = () => new Promise<void>((resolve) => setTimeout(resolve, 100));
+
+/** Cursor's `/model` opens on the Filter field with no options yet; the list
+ *  (or a filtered match) appears after Down or after typing. */
+function cursorModelChrome(rows: readonly string[]): boolean {
+  return rows.some((row) =>
+    /(?:Type|Edit prompt) to filter\s*[•·]\s*Enter to select|Available models|Models matching\b/i.test(
+      row,
+    ),
+  );
+}
+
 function controls(
   rpc: Pick<Rpc, 'request'>,
   sessionId: string,
@@ -21,6 +32,12 @@ function controls(
     if (!expected(screen())) throw new Error('The CLI menu changed before input');
     await rpc.request('session.input', { sessionId, data });
   };
+  const rawWrite = async (data: string) => {
+    if (!active()) throw new Error('The session changed before the model switch finished');
+    const picker = screen();
+    if (picker && !isModelPicker(picker)) throw new Error('Finish the current CLI dialog first');
+    await rpc.request('session.input', { sessionId, data });
+  };
   const wait = async (test: (picker: TuiPicker | null) => boolean, timeout: number) => {
     const until = Date.now() + timeout;
     while (!test(screen())) {
@@ -29,8 +46,10 @@ function controls(
     }
     return true;
   };
-  const open = async (provider: ProviderId, timeout: number) => {
-    if (!['claude', 'codex'].includes(provider))
+  /** `cursorEnterList`: discover needs the first page of options (Down from
+   *  Filter). apply types into Filter instead and leaves the list collapsed. */
+  const open = async (provider: ProviderId, timeout: number, cursorEnterList = true) => {
+    if (!['claude', 'codex', 'cursor'].includes(provider))
       throw new Error('This session cannot open a model picker');
     const current = screen();
     if (current && !isModelList(provider, current))
@@ -40,10 +59,26 @@ function controls(
       if (screen()) throw new Error('The CLI dialog changed before opening the model menu');
       await write('\r', (p) => !p);
     }
+    if (provider === 'cursor') {
+      const until = Date.now() + timeout;
+      let sentDown = false;
+      while (true) {
+        if (!active()) throw new Error('The session changed before the model switch finished');
+        const picker = screen();
+        if (isModelList(provider, picker)) return;
+        if (!cursorEnterList && cursorModelChrome(rows())) return;
+        if (Date.now() >= until) throw new Error('The model menu did not appear');
+        if (cursorEnterList && !sentDown && cursorModelChrome(rows())) {
+          await rawWrite('\x1b[B');
+          sentDown = true;
+        }
+        await pause();
+      }
+    }
     if (!(await wait((p) => isModelList(provider, p), timeout)))
       throw new Error('The model menu did not appear');
   };
-  return { screen, write, wait, open };
+  return { screen, write, rawWrite, wait, open };
 }
 export async function discoverModelMenu(
   rpc: Pick<Rpc, 'request'>,
@@ -53,7 +88,7 @@ export async function discoverModelMenu(
   active: () => boolean = () => true,
 ) {
   const c = controls(rpc, sessionId, rows, active);
-  await c.open(provider, 10000);
+  await c.open(provider, 10000, true);
   const menu = cacheModelMenu(provider, c.screen());
   if (!menu) throw new Error('The model menu changed');
   await c.write('\x1b', (p) => isModelList(provider, p));
@@ -69,6 +104,10 @@ export async function applyModelSwitch(
   active: () => boolean = () => true,
 ): Promise<void> {
   const c = controls(rpc, sessionId, rows, active);
+  if (provider === 'cursor') {
+    await applyCursorModelSwitch(c, target);
+    return;
+  }
   await c.open(provider, 5000);
   const menu = c.screen();
   if (!isModelList(provider, menu)) throw new Error('The model menu changed');
@@ -122,5 +161,30 @@ export async function applyModelSwitch(
       );
     }
   }
+  if (!(await c.wait((p) => !p, 3000))) throw new Error('The model picker did not close');
+}
+
+async function applyCursorModelSwitch(
+  c: ReturnType<typeof controls>,
+  target: ModelOption,
+): Promise<void> {
+  await c.open('cursor', 5000, false);
+  const label = cleanModelLabel(target.label);
+  // Never carry control chars into the Filter field — Enter would select early.
+  const filter = label.replace(/[\r\n\x00-\x1f]/g, '').slice(0, 80);
+  if (!filter) throw new Error('Cannot locate the model highlight');
+  const matches = (p: TuiPicker | null) =>
+    isModelList('cursor', p) &&
+    p.options.some((o) => o.selected && cleanModelLabel(o.label) === label);
+  if (!matches(c.screen())) {
+    // Filter is focused on a freshly opened menu; typing narrows the list and
+    // leaves the match highlighted (measured on cursor-agent 2026.11.13).
+    await c.rawWrite(filter);
+  }
+  if (!(await c.wait(matches, 4000))) {
+    if (isModelList('cursor', c.screen())) await c.write('\x1b', (p) => isModelList('cursor', p));
+    throw new Error('The model highlight did not reach the requested model');
+  }
+  await c.write('\r', matches);
   if (!(await c.wait((p) => !p, 3000))) throw new Error('The model picker did not close');
 }

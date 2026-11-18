@@ -39,11 +39,20 @@ export interface TuiPicker {
  *  Widening these is safe because the real guard is downstream: at least two
  *  options, numbered in an unbroken 1..N run, directly above the footer. */
 const FOOTER_RE =
-  /(Enter to (?:select|set|confirm)|Press enter to (?:confirm|continue|select)|↑\/↓ to navigate|[Ee]sc to (?:cancel|go back)|^\s*enter (?:select|default|confirm|continue)\s*·.*\besc (?:back|skip)\s*$)/;
-const OPTION_RE = /^(\s*)([❯›]\s*)?(?:[↑↓]\s*)?(\d{1,2})\.\s+(\S.*)$/;
+  /(Enter to (?:select|set|confirm)|Press enter to (?:confirm|continue|select)|↑\/↓ to navigate|[Ee]sc to (?:cancel|go back)|(?:Type|Edit prompt) to filter\s*[•·]\s*Enter to select|Use arrow keys to navigate,\s*Enter to select|^\s*enter (?:select|default|confirm|continue)\s*·.*\besc (?:back|skip)\s*$)/;
+const OPTION_RE = /^(\s*)([❯›→▶]\s*)?(?:[↑↓]\s*)?(\d{1,2})\.\s+(\S.*)$/;
 const MODEL_TRUNCATION_RE = /^\s*(?:…|\.\.\.)\s*\+\d+\s+models?\s*$/i;
-/** a row carrying the TUI's selection marker, numbered or not */
-const MARKER_ROW_RE = /^(\s*)[❯›]\s+\S/;
+/** Cursor model lists draw `1-10 of 47` between the options and the footer. */
+const PAGINATION_RE = /^\s*\d+\s*-\s*\d+\s+of\s+\d+\s*$/i;
+/** a row carrying the TUI's selection marker, numbered or not.
+ *  Claude ❯, Codex ›, Cursor menus →, Cursor trust ▶. */
+const MARKER_ROW_RE = /^(\s*)[❯›→▶]\s+\S/;
+const MARKER_PREFIX_RE = /^\s*[❯›→▶]\s+/;
+/** Strip the vertical borders of Cursor's rounded trust dialog so the
+ *  options and footer sit where parseUnnumbered expects them. */
+function normalizePickerRow(row: string): string {
+  return row.replace(/^\s*[│┃]\s?/, '').replace(/\s*[│┃]\s*$/, '');
+}
 
 /**
  * Recognise a picker on the terminal's CURRENT SCREEN.
@@ -99,7 +108,8 @@ function parseOverlay(rows: readonly string[]): TuiPicker | null {
   return null;
 }
 
-function parseRows(rows: readonly string[]): TuiPicker | null {
+function parseRows(rawRows: readonly string[]): TuiPicker | null {
+  const rows = rawRows.map(normalizePickerRow);
   let footerIdx = -1;
   for (let i = rows.length - 1; i >= 0; i--) {
     const row = rows[i];
@@ -212,9 +222,13 @@ function parseRows(rows: readonly string[]): TuiPicker | null {
       : rows
           .slice(Math.max(0, firstOptionIdx - 8), firstOptionIdx)
           .reverse()
-          .find((row) => /^\s*(?:Select model|Select Model and Effort)\s*$/i.test(row))
+          .find((row) =>
+            /^\s*(?:Select model|Select Model and Effort|Available models|Models matching\b)/i.test(
+              row,
+            ),
+          )
           ?.trim();
-  if (modelTitle) title = modelTitle;
+  if (modelTitle) title = cleanPickerTitle(modelTitle);
   // A confirmation box heads its wrapped explanation with a question, and the
   // explanation is what "the first prose line above the options" lands on —
   // "re-read on your next message." instead of "Switch model?". Prefer a
@@ -269,19 +283,43 @@ function withCheckboxes(options: PickerOption[]): PickerOption[] | undefined {
  *
  *     Enter to confirm · Esc to cancel
  *
+ * Cursor Agent 2026.11.13 uses the same shape for `/model` (`→ Auto`) and the
+ * workspace-trust box (`▶ [a] Trust this workspace`), with a pagination line
+ * and an optional `◉ Fast` toggle that sit between the options and the footer.
+ *
  * The options are the block of rows ending just above the footer, every one
  * starting where the marked row's label starts, with exactly one marked.
  * Any other row ends the block, so prose above never joins it.
  */
 function parseUnnumbered(rows: readonly string[], footerIdx: number): TuiPicker | null {
   let i = footerIdx - 1;
-  for (let blanks = 0; i >= 0 && !(rows[i] ?? '').trim(); i--) if (++blanks > 2) return null;
+  // Skip blanks, pagination, and an unmarked Fast toggle (Cursor's `◉ Fast`)
+  // that sit between the footer and the real option run. Do not skip `○`/`●`
+  // radio rows — those are the Edit Parameters options.
+  while (i >= 0) {
+    const raw = rows[i] ?? '';
+    const row = raw.trim();
+    if (
+      !row ||
+      PAGINATION_RE.test(row) ||
+      (/^◉\s+\S/.test(row) && !MARKER_ROW_RE.test(raw))
+    ) {
+      i--;
+      continue;
+    }
+    break;
+  }
+  if (i < 0) return null;
   const block: string[] = [];
-  for (; i >= 0 && (rows[i] ?? '').trim() && block.length < 10; i--) block.unshift(rows[i] ?? '');
+  for (; i >= 0 && (rows[i] ?? '').trim() && block.length < 20; i--) {
+    const row = rows[i] ?? '';
+    if (PAGINATION_RE.test(row) || /^Filter:\s*/i.test(row.trim())) break;
+    block.unshift(row);
+  }
   const marked = block.findIndex((r) => MARKER_ROW_RE.test(r));
   if (marked < 0 || block.some((r, k) => k !== marked && MARKER_ROW_RE.test(r))) return null;
   // the column the marked row's label starts at; the others align with it
-  const col = /^\s*[❯›]\s+/.exec(block[marked] ?? '')?.[0].length ?? -1;
+  const col = MARKER_PREFIX_RE.exec(block[marked] ?? '')?.[0].length ?? -1;
   const isOption = (r: string, k: number): boolean =>
     k === marked || (r.search(/\S/) === col && !OPTION_RE.test(r));
   // the run of option rows that reaches the footer and contains the mark
@@ -289,21 +327,41 @@ function parseUnnumbered(rows: readonly string[], footerIdx: number): TuiPicker 
   while (start > 0 && isOption(block[start - 1] ?? '', start - 1)) start--;
   if (start > marked) return null;
   const run = block.slice(start);
-  if (run.length < 2) return null;
-  const options = run.map((r, k) => ({
-    n: k + 1,
-    label: r.replace(/^\s*[❯›]?\s*/, '').trim(),
-    selected: start + k === marked,
-  }));
+  // Cursor's filter can narrow the model list to a single match.
+  if (run.length < 1) return null;
+  if (run.length < 2 && !/(?:Type|Edit prompt) to filter|key shown/i.test(rows[footerIdx] ?? ''))
+    return null;
+  const options = run.map((r, k) => {
+    const rest = r.replace(MARKER_PREFIX_RE, '').replace(/^\s*/, '').trim();
+    const split = /^(.*?)\s{2,}(\S.*)$/.exec(rest);
+    const label = (split ? (split[1] ?? '') : rest)
+      .replace(/\s*\(Tab to modify\)\s*$/i, '')
+      .replace(/\s+✔$/, '')
+      .trim();
+    return {
+      n: k + 1,
+      label,
+      description: split ? (split[2] ?? '').replace(/\s*\(Tab to modify\)\s*$/i, '').trim() : undefined,
+      selected: start + k === marked,
+    };
+  });
   // block[0] sits at rows[i + 1]; the title is the nearest prose above the run
-  const title =
+  const above = rows.slice(0, i + 1 + start).reverse();
+  const titled =
+    above.find((r) =>
+      /^\s*(?:Available models|Models matching\b|.*\bEdit Parameters\b|⚠?\s*Workspace Trust Required)\b/i.test(
+        r,
+      ),
+    ) ||
     questionAbove(rows, footerIdx) ||
-    rows
-      .slice(0, i + 1 + start)
-      .reverse()
-      .find((r) => r.trim())
-      ?.trim();
+    above.find((r) => r.trim());
+  const title = titled ? cleanPickerTitle(titled.trim()) : undefined;
   return { title, options, hint: (rows[footerIdx] ?? '').trim(), numbered: false };
+}
+
+/** Drop the trailing "Max mode: OFF" chip Cursor paints on model-menu titles. */
+function cleanPickerTitle(title: string): string {
+  return title.replace(/\s+Max mode:\s*(?:ON|OFF)\s*$/i, '').trim();
 }
 
 /** The nearest heading ending in '?' just above a picker's options — the

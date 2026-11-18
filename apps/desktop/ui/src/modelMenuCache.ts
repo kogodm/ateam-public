@@ -14,15 +14,17 @@ export interface PendingModel extends ModelOption {
   provider: ProviderId;
 }
 export function cleanModelLabel(label: string): string {
-  return label.replace(/(?:\s*(?:\((?:current|default)\)|✔))+\s*$/i, '').trim();
+  return label
+    .replace(/(?:\s*(?:\((?:current|default)\)|✔|\(Tab to modify\)))+\s*$/i, '')
+    .trim();
 }
 export function isModelList(provider: ProviderId, picker: TuiPicker | null): picker is TuiPicker {
-  return (
-    !!picker &&
-    (provider === 'claude'
-      ? /select model/i.test(picker.title ?? '')
-      : provider === 'codex' && /model and effort/i.test(picker.title ?? ''))
-  );
+  if (!picker) return false;
+  const title = picker.title ?? '';
+  if (provider === 'claude') return /select model/i.test(title);
+  if (provider === 'codex') return /model and effort/i.test(title);
+  if (provider === 'cursor') return /available models|models matching\b/i.test(title);
+  return false;
 }
 export function readModelMenu(
   provider: ProviderId,

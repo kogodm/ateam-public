@@ -8,7 +8,9 @@ import {
   typedIn,
 } from './tuiPicker';
 import multiScreens from './fixtures/claude-2.1.309-multiselect-screens.json';
+import cursorScreens from './fixtures/cursor-2026.11.13-screens.json';
 import { isModelList } from './modelMenuCache';
+import { isModelPicker } from './modelPickerActions';
 
 /** captured from a live claude TUI (/model at 100 cols) */
 const MODEL_PICKER = [
@@ -562,5 +564,69 @@ describe('Claude 2.1.309 multi-select questions (captured live)', () => {
       'Enter to select · ↑/↓ to navigate · Esc to cancel',
     ]);
     expect(p?.multi).toBeUndefined();
+  });
+});
+
+describe('Cursor Agent 2026.11.13 menus (captured live)', () => {
+  const screens = cursorScreens as Record<string, string[]>;
+
+  it('reads the unnumbered /model list with descriptions and pagination', () => {
+    const p = parsePicker(screens.modelList ?? []);
+    expect(p?.numbered).toBe(false);
+    expect(p?.title).toBe('Available models');
+    expect(p?.options[0]).toMatchObject({ label: 'Auto', selected: true });
+    expect(p?.options[1]).toMatchObject({
+      label: 'Grok 4.7',
+      description: '256K High Fast',
+      selected: false,
+    });
+    expect(p?.options).toHaveLength(10);
+    expect(p?.hint).toMatch(/Type to filter/);
+    expect(isModelList('cursor', p)).toBe(true);
+    expect(isModelPicker(p)).toBe(true);
+  });
+
+  it('reads a filtered single-match model list', () => {
+    const p = parsePicker(screens.modelFilteredComposer ?? []);
+    expect(p?.title).toBe('Models matching "Composer"');
+    expect(p?.options).toEqual([
+      {
+        n: 1,
+        label: 'Composer 2.5',
+        description: 'Fast',
+        selected: true,
+      },
+    ]);
+    expect(isModelList('cursor', p)).toBe(true);
+  });
+
+  it('reads Edit Parameters radios and skips the Fast toggle', () => {
+    const p = parsePicker(screens.editParameters ?? []);
+    expect(p?.title).toBe('Grok 4.6 — Edit Parameters');
+    expect(p?.numbered).toBe(false);
+    expect(p?.options.map((o) => [o.label, o.selected])).toEqual([
+      ['○ Low', true],
+      ['○ Medium', false],
+      ['● High ✓', false],
+      ['○ Extra High', false],
+    ]);
+    expect(isModelPicker(p)).toBe(true);
+    expect(isModelList('cursor', p)).toBe(false);
+  });
+
+  it('reads the workspace trust box inside its rounded border', () => {
+    const p = parsePicker(screens.trust ?? []);
+    expect(p?.title).toBe('⚠ Workspace Trust Required');
+    expect(p?.numbered).toBe(false);
+    expect(p?.options.map((o) => o.label)).toEqual([
+      '[a] Trust this workspace',
+      '[q] Quit',
+    ]);
+    expect(p?.options[0]?.selected).toBe(true);
+    expect(isModelPicker(p)).toBe(false);
+  });
+
+  it('does not treat the slash-command menu as a picker (no footer)', () => {
+    expect(parsePicker(screens.slashMenu ?? [])).toBeNull();
   });
 });

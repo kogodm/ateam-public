@@ -686,7 +686,7 @@
       "mode": 420
     },
     "apps/desktop/ui/src/App.tsx": {
-      "sha256": "6b30a881ccea50fce6a8915c7e75ce8e4d9fb2e4b64155da3e7f6c288e065dc1",
+      "sha256": "9e35f1d2c3ad5eb6890a982d824f04b601b636dbc6994d0095286f519b5dc5fb",
       "mode": 420
     },
     "apps/desktop/ui/src/ChatView.tsx": {
@@ -981,6 +981,10 @@
       "sha256": "c8550615193a95eb9f8e749450529ed12d2c5f7a6d7f948cef4e1099c0593cb2",
       "mode": 420
     },
+    "apps/desktop/ui/src/fixtures/cursor-2026.11.13-screens.json": {
+      "sha256": "44ea29ef8f2b359e7899ca7e5dd80a1bed38a20b31aee0ab115eea3102229f99",
+      "mode": 420
+    },
     "apps/desktop/ui/src/foxLines.ts": {
       "sha256": "c87b13f9f4cf5f03836b0a9357f64f1c6c230b06020c7cb0e98923c6eadc288a",
       "mode": 420
@@ -1102,7 +1106,7 @@
       "mode": 420
     },
     "apps/desktop/ui/src/modelMenuCache.ts": {
-      "sha256": "5dc9c9a46006138db7d33d88181a90c643670a9618e5c3525312515b1c2acf68",
+      "sha256": "36b726c5f4a4299374ff97828934412c1dc8308bafa0a6c8c09338ca8f2d70d1",
       "mode": 420
     },
     "apps/desktop/ui/src/modelName.test.ts": {
@@ -1114,15 +1118,15 @@
       "mode": 420
     },
     "apps/desktop/ui/src/modelPickerActions.ts": {
-      "sha256": "74e0f33ebeaad919362e24f86ae572d8c17538e9eb8cdfd2f8e5dd1c5965f8b5",
+      "sha256": "a023b781f9c092596321ddee543b1f3c37e55a18a5913ff6c4ebd84d659576c6",
       "mode": 420
     },
     "apps/desktop/ui/src/modelSwitch.test.ts": {
-      "sha256": "278e166cd75e3ab9bdf126e683c00b890ee784900eba8d7ffe2688c92e9ba19f",
+      "sha256": "af868ba359d0fbd88778b040868f6fd212550671206657d0440b58e296ab84a9",
       "mode": 420
     },
     "apps/desktop/ui/src/modelSwitch.ts": {
-      "sha256": "39bae37802814a96f785f4b4da0992994b0352f296d5ecbbe9ad079d7368a873",
+      "sha256": "56d066dc276986252be57b27e7a7379746211ae4ecfc6c93f3f15c64d627befc",
       "mode": 420
     },
     "apps/desktop/ui/src/navProject.test.ts": {
@@ -1402,7 +1406,7 @@
       "mode": 420
     },
     "apps/desktop/ui/src/tuiPicker.test.ts": {
-      "sha256": "302613b5552568a1a74d0e08ec7c324b4fd3912e488f46bd91649a0df2559f9d",
+      "sha256": "774f174f67d30c299330499859f1e1b5f3d0d88bcb0fe77453d516585166e2ca",
       "mode": 420
     },
     "apps/desktop/ui/src/tuiPicker.ts": {
@@ -1690,7 +1694,7 @@
       "mode": 420
     },
     "packages/contract/src/tui-picker.ts": {
-      "sha256": "b67ae803fa436da4bbe9466ed0ad66218669ea9ed8d5a82bb9830026263c0bbb",
+      "sha256": "104ff73b2d50e7a648d8f34c6590227a95179e9d9e0135b5717b38892a513d6c",
       "mode": 420
     },
     "packages/contract/tsconfig.json": {
@@ -2394,7 +2398,7 @@
       "mode": 420
     },
     "packages/core/src/session/manager.ts": {
-      "sha256": "d868317ae76f30e0413fed149997e9fd5d6dae92b07510f3fe835002fdfa24ac",
+      "sha256": "1e53d3c08a4f87508a928b6bd60d6151647e9846b149eb2c7da32ea217195bc4",
       "mode": 420
     },
     "packages/core/src/session/mcp-config.ts": {
@@ -2566,15 +2570,27 @@
       "mode": 420
     },
     "packages/core/src/session/providers/cursor-adapter.test.ts": {
-      "sha256": "711931c77c70d7ba324f01d1ba0d1435ab3444102bf173c50beb5bb85dd109db",
+      "sha256": "d83008e8d9d5cd762bd0f3979ca956f4a0ef477cd40368847f1dfe029c83c483",
       "mode": 420
     },
     "packages/core/src/session/providers/cursor-adapter.ts": {
-      "sha256": "b735e99d9616d489a650b8fc58d4b556ce0df66365eb390db0f964dec8492a97",
+      "sha256": "f5195ea13f30c9f11d52be4c11c9bb1c6664354507611d01882e9ad60f46d44f",
+      "mode": 420
+    },
+    "packages/core/src/session/providers/cursor-recall-stream.test.ts": {
+      "sha256": "357e839b09948a3ad510458a8d8549813e14b6bf55cbc8312abe28373c6a223c",
+      "mode": 420
+    },
+    "packages/core/src/session/providers/cursor-recall.test.ts": {
+      "sha256": "c074f828e76217ae29879541e082b93faa29f3c7018e96c7431e9487bf624e10",
+      "mode": 420
+    },
+    "packages/core/src/session/providers/cursor-recall.ts": {
+      "sha256": "0171062cf958e2ad9e576210514445986cc7285322cba83b804a221d5af0fe2f",
       "mode": 420
     },
     "packages/core/src/session/providers/cursor-session-import.ts": {
-      "sha256": "70387bca005ca59734f77076796efb11cf344e6a13b7fe90a915b8590a25951d",
+      "sha256": "a410f28a3e7bbd73f77a5bf99e92e1ad1d8eba80806ff28d86597a62ad04dcaf",
       "mode": 420
     },
     "packages/core/src/session/providers/cursor-sessions.test.ts": {
@@ -2602,7 +2618,7 @@
       "mode": 420
     },
     "packages/core/src/session/providers/provider-adapter.ts": {
-      "sha256": "5a03a9e5e1a7f7188897b0f4e4cf3981cd5871774781dc4d5fb556991250bb53",
+      "sha256": "d9722f857eb992b54617152652bb4afe4728981a4349c23299925a298b9e1f03",
       "mode": 420
     },
     "packages/core/src/session/queued-carryover.test.ts": {

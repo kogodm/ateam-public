@@ -18,9 +18,13 @@ export function isModelPicker(picker: TuiPicker | null): boolean {
   const title = picker.title ?? '';
   if (/permission|access|approve|command|trust/i.test(title)) return false;
   return (
-    /(?:select|choose|switch|change).*model|reasoning|effort|more models/i.test(title) ||
+    /(?:select|choose|switch|change).*model|reasoning|effort|more models|available models|models matching\b|edit parameters/i.test(
+      title,
+    ) ||
     picker.options.filter((option) =>
-      /^(?:gpt-|Opus\b|Sonnet\b|Haiku\b|Fable\b|Mythos\b)/i.test(option.label),
+      /^(?:gpt-|Auto\b|Composer\b|Grok\b|Gemini\b|Muse\b|Opus\b|Sonnet\b|Haiku\b|Fable\b|Mythos\b|Claude\b)/i.test(
+        option.label,
+      ),
     ).length >= 2
   );
 }

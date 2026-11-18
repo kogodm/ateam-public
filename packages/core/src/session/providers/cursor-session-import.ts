@@ -210,6 +210,9 @@ const INJECTED_TAGS = [
   'system_notification',
   'task_notification',
   'agent_notification',
+  // Ateam folds Human recall into Cursor's positional prompt (no system-prompt
+  // flag). The wrapper must stay invisible in stream + migration history.
+  'ateam_human_recall',
 ];
 
 function stripInjectedTags(text: string): string {

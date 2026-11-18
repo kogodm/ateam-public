@@ -2649,9 +2649,17 @@ export default function App(): JSX.Element {
     setHandoffPrompt(null);
     setHandoffCountdown(null);
     setStatus("opening this runtime's model picker…");
+    const providerId = sessionsRef.current.find((s) => s.sessionId === sessionId)?.providerId;
     void r
       .request('session.input', { sessionId, data: '/model' })
       .then(() => r.request('session.input', { sessionId, data: '\r' }))
+      .then(async () => {
+        // Cursor opens on Filter with no options; Down reveals the list so
+        // Stream can render buttons (measured cursor-agent 2026.11.13).
+        if (providerId !== 'cursor') return;
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        await r.request('session.input', { sessionId, data: '\x1b[B' });
+      })
       .catch((e) =>
         setStatus(`model picker failed: ${e instanceof Error ? e.message : String(e)}`),
       );

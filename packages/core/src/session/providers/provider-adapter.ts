@@ -36,7 +36,9 @@ export interface ProviderBuildArgs {
   /** recall text the spawn should pre-load as system context. For claude
    *  this is `--append-system-prompt <text>`; Codex receives the same text
    *  through an invocation-scoped `developer_instructions` override.
-   *  OpenCode has no verified equivalent yet. Empty string = nothing. */
+   *  Cursor folds it into the positional initial prompt (wrapped so the
+   *  stream can hide it). OpenCode has no verified equivalent yet.
+   *  Empty string = nothing. */
   appendSystemPrompt: string;
   /** extra settings JSON merged in via `claude --settings` (a SessionStart
    *  hook that reports session-id rotation on /clear). Empty = none. */

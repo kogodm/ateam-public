@@ -236,4 +236,68 @@ describe('switch before send', () => {
     expect((await job).options[1]?.label).toBe('Opus 5.5');
     expect(h.writes).toEqual(['/model', '\r', '\x1b']);
   });
+  const cursorFilter = [
+    'Available models                                                                             Max mode: OFF',
+    '',
+    'Filter:',
+    '',
+    '',
+    'Type to filter • Enter to select • Tab to edit',
+  ];
+  const cursorList = (selected = 'Auto') => [
+    'Available models                                                                             Max mode: OFF',
+    '',
+    'Filter:',
+    '',
+    `${selected === 'Auto' ? '→' : ' '}  Auto`,
+    `${selected === 'Composer 2.5' ? '→' : ' '}  Composer 2.5             Fast`,
+    `${selected === 'Grok 4.7' ? '→' : ' '}  Grok 4.7                 256K High Fast`,
+    '',
+    '1-3 of 3',
+    '',
+    'Type to filter • Enter to select • Tab to edit',
+  ];
+  const cursorFiltered = [
+    'Models matching "Composer 2.5"                                                                   Max mode: OFF',
+    '',
+    'Filter: Composer 2.5',
+    '',
+    '→  Composer 2.5             Fast (Tab to modify)',
+    '',
+    'Type to filter • Enter to select • Tab to edit',
+  ];
+  it('Cursor filters then Enter-selects without digits or Tab-edit', async () => {
+    const h = harness([], (key, set) => {
+      if (key === '\r' && h.writes.filter((w) => w === '\r').length === 1) set(cursorFilter);
+      else if (key === 'Composer 2.5') set(cursorFiltered);
+      else if (key === '\r') set([]);
+    });
+    await finish(
+      applyModelSwitch(h.rpc, 's', h.rows, 'cursor', { n: 2, label: 'Composer 2.5' }),
+    );
+    expect(h.writes).toEqual(['/model', '\r', 'Composer 2.5', '\r']);
+  });
+  it('Cursor discover Downs into the list, caches, then Escapes', async () => {
+    const h = harness([], (key, set) => {
+      if (key === '\r') set(cursorFilter);
+      if (key === '\x1b[B') set(cursorList());
+      if (key === '\x1b') set([]);
+    });
+    const job = discoverModelMenu(h.rpc, 's', h.rows, 'cursor');
+    await vi.runAllTimersAsync();
+    const menu = await job;
+    expect(menu.options.map((o) => o.label)).toEqual(['Auto', 'Composer 2.5', 'Grok 4.7']);
+    expect(h.writes).toEqual(['/model', '\r', '\x1b[B', '\x1b']);
+  });
+  it('Cursor strips control characters from a malicious filter label', async () => {
+    const h = harness([], (key, set) => {
+      if (key === '\r' && h.writes.filter((w) => w === '\r').length === 1) set(cursorFilter);
+    });
+    await finish(
+      applyModelSwitch(h.rpc, 's', h.rows, 'cursor', { n: 2, label: 'X\r\n\x1bY' }),
+      'highlight',
+    );
+    expect(h.writes).toEqual(['/model', '\r', 'XY']);
+    expect(h.writes.some((w) => /[\r\n\x1b]/.test(w) && w !== '\r')).toBe(false);
+  });
 });

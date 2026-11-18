@@ -14,6 +14,7 @@ import { homedir, tmpdir } from 'node:os';
 import { delimiter, join, sep } from 'node:path';
 import { ateamHome } from '../../paths';
 import { loginShellEnv, mergedPath } from '../../platform';
+import { buildCursorInitialPrompt } from './cursor-recall';
 import type { ProviderAdapter, ProviderBuildArgs } from './provider-adapter';
 
 type CursorMcpServer = { command: string; args: string[]; env: Record<string, string> };
@@ -148,11 +149,12 @@ function writeCursorPlugin(mcpConfigPath: string): string {
  *   • fresh: `cursor-agent [initial prompt]`
  *   • resume: `cursor-agent --resume=<chatId> [initial prompt]`
  *
- * Ateam does not yet have a verified per-invocation hidden system prompt for
- * Cursor. MCP servers are exposed through an invocation-scoped plugin-dir.
- * Model ids are omitted until a
- * Cursor-specific accepted-id policy is verified; Claude/Codex bindings must
- * not be forwarded blindly.
+ * There is no verified hidden system-prompt flag. Human recall is folded into
+ * the positional prompt (see `cursor-recall.ts`) and stripped from the stream
+ * via the `<ateam_human_recall>` wrapper. MCP servers stay on an
+ * invocation-scoped plugin-dir. Model ids are omitted until a Cursor-specific
+ * accepted-id policy is verified; Claude/Codex bindings must not be forwarded
+ * blindly.
  */
 export const cursorAdapter: ProviderAdapter = {
   id: 'cursor',
@@ -166,7 +168,8 @@ export const cursorAdapter: ProviderAdapter = {
       const plugin = writeCursorPlugin(args.mcpConfigPath);
       out.push('--plugin-dir', plugin);
     }
-    if (args.initialPrompt) out.push(args.initialPrompt);
+    const prompt = buildCursorInitialPrompt(args);
+    if (prompt) out.push(prompt);
     return out;
   },
 };
