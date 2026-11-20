@@ -1,3 +1,4 @@
+import { antigravityAdapter } from './antigravity-adapter';
 import { claudeAdapter } from './claude-adapter';
 import { codexAdapter } from './codex-adapter';
 import { cursorAdapter } from './cursor-adapter';
@@ -9,6 +10,7 @@ const REGISTRY: Record<ProviderId, ProviderAdapter> = {
   codex: codexAdapter,
   opencode: opencodeAdapter,
   cursor: cursorAdapter,
+  antigravity: antigravityAdapter,
 };
 
 export function getAdapter(id: ProviderId): ProviderAdapter {

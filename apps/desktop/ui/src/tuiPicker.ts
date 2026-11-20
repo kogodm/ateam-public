@@ -3,6 +3,7 @@ export {
   type PickerOption,
   type TuiPicker,
   freeTextOption,
+  isSpaceToggleMulti,
   keysToNext,
   keysToReach,
   parsePicker,

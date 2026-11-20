@@ -19,7 +19,9 @@ export interface TuiPicker {
   numbered?: false;
   /** a multi-select question (AskUserQuestion with multiSelect): a digit
    *  toggles that option's box, and the "Next" row — which sits between the
-   *  options and "Chat about this", and is not numbered — moves on. */
+   *  options and "Chat about this", and is not numbered — moves on.
+   *  Cursor AskQuestion uses Space to toggle and Enter to next/submit (no
+   *  Next row); see `isSpaceToggleMulti`. */
   multi?: { nextSelected: boolean };
 }
 
@@ -38,8 +40,11 @@ export interface TuiPicker {
  *
  *  Widening these is safe because the real guard is downstream: at least two
  *  options, numbered in an unbroken 1..N run, directly above the footer. */
+const ASK_QUESTION_FOOTER_RE =
+  /↑\/↓ option\s*[·•].*Space select.*Enter next\/submit/i;
+const FOLLOWUPS_FOOTER_RE = /enter steer\s*[·•].*(?:↑ select\/edit\s*[·•]\s*)?esc cancel/i;
 const FOOTER_RE =
-  /(Enter to (?:select|set|confirm)|Press enter to (?:confirm|continue|select)|↑\/↓ to navigate|[Ee]sc to (?:cancel|go back)|(?:Type|Edit prompt) to filter\s*[•·]\s*Enter to select|Use arrow keys to navigate,\s*Enter to select|^\s*enter (?:select|default|confirm|continue)\s*·.*\besc (?:back|skip)\s*$)/;
+  /(Enter to (?:select|set|confirm)|Press enter to (?:confirm|continue|select)|↑\/↓ to navigate|[Ee]sc to (?:cancel|go back)|(?:Type|Edit prompt) to filter\s*[•·]\s*Enter to select|Use arrow keys to navigate,\s*Enter to select|↑\/↓ option\s*[·•].*Space select|enter steer\s*[·•].*esc cancel|^\s*enter (?:select|default|confirm|continue)\s*·.*\besc (?:back|skip)\s*$)/;
 const OPTION_RE = /^(\s*)([❯›→▶]\s*)?(?:[↑↓]\s*)?(\d{1,2})\.\s+(\S.*)$/;
 const MODEL_TRUNCATION_RE = /^\s*(?:…|\.\.\.)\s*\+\d+\s+models?\s*$/i;
 /** Cursor model lists draw `1-10 of 47` between the options and the footer. */
@@ -48,10 +53,18 @@ const PAGINATION_RE = /^\s*\d+\s*-\s*\d+\s+of\s+\d+\s*$/i;
  *  Claude ❯, Codex ›, Cursor menus →, Cursor trust ▶. */
 const MARKER_ROW_RE = /^(\s*)[❯›→▶]\s+\S/;
 const MARKER_PREFIX_RE = /^\s*[❯›→▶]\s+/;
-/** Strip the vertical borders of Cursor's rounded trust dialog so the
- *  options and footer sit where parseUnnumbered expects them. */
+const BOX_EDGE_RE = /^[┌┐└┘╭╮╰╯─━\s]+$/;
+/** Cursor AskQuestion option: optional › marker, then [ ] / [x]. */
+const ASK_OPTION_RE = /^(\s*)([❯›→▶]\s*)?\[([ xX✓✔])\]\s+(\S.*)$/;
+/** Strip the vertical borders of Cursor's rounded trust / AskQuestion boxes so
+ *  the options and footer sit where the unnumbered readers expect them. */
 function normalizePickerRow(row: string): string {
   return row.replace(/^\s*[│┃]\s?/, '').replace(/\s*[│┃]\s*$/, '');
+}
+
+/** Cursor AskQuestion toggles with Space and submits with Enter (no Next row). */
+export function isSpaceToggleMulti(p: TuiPicker | null): boolean {
+  return !!p?.multi && ASK_QUESTION_FOOTER_RE.test(p.hint);
 }
 
 /**
@@ -108,15 +121,36 @@ function parseOverlay(rows: readonly string[]): TuiPicker | null {
   return null;
 }
 
+/** Prefer Cursor AskQuestion over Follow-ups when both footers are on screen
+ *  (Follow-ups sits below the form, so a bottom-up scan would steal it). */
+function findFooterIdx(rows: readonly string[]): number {
+  let best = -1;
+  let bestScore = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i] ?? '';
+    if (!row.trim()) continue;
+    let score = 0;
+    if (ASK_QUESTION_FOOTER_RE.test(row)) score = 3;
+    else if (FOLLOWUPS_FOOTER_RE.test(row)) score = 1;
+    else if (FOOTER_RE.test(row)) score = 2;
+    // score 0 must not win — that used to treat the last prose line as a footer
+    // and broke footerless confirms / scrolled model menus.
+    if (score > bestScore) {
+      bestScore = score;
+      best = i;
+    }
+  }
+  return best;
+}
+
 function parseRows(rawRows: readonly string[]): TuiPicker | null {
   const rows = rawRows.map(normalizePickerRow);
-  let footerIdx = -1;
-  for (let i = rows.length - 1; i >= 0; i--) {
-    const row = rows[i];
-    if (row && FOOTER_RE.test(row)) {
-      footerIdx = i;
-      break;
-    }
+  const footerIdx = findFooterIdx(rows);
+  if (footerIdx >= 0 && ASK_QUESTION_FOOTER_RE.test(rows[footerIdx] ?? '')) {
+    return parseCursorAskQuestion(rows, footerIdx);
+  }
+  if (footerIdx >= 0 && FOLLOWUPS_FOOTER_RE.test(rows[footerIdx] ?? '')) {
+    return parseCursorFollowUps(rows, footerIdx);
   }
   // No footer: fall back to the bottom-most numbered row. Two guards replace
   // the footer — the run must carry the TUI's own selection marker (prose that
@@ -273,6 +307,115 @@ function withCheckboxes(options: PickerOption[]): PickerOption[] | undefined {
 }
 
 /**
+ * Cursor AskQuestion (captured live, cursor-agent 2026.11.17): a rounded box
+ * with `Question N of M`, checkbox options marked `›`, footer
+ * `↑/↓ option · ←/→ question · Space select · Enter next/submit · Esc to skip`.
+ * Long option labels wrap onto a more-indented continuation line.
+ */
+function parseCursorAskQuestion(rows: readonly string[], footerIdx: number): TuiPicker | null {
+  const collected: { label: string; checked: boolean; selected: boolean }[] = [];
+  // Walking upward, wrap lines appear before their option; hold them as a suffix.
+  const pendingSuffix: string[] = [];
+  for (let i = footerIdx - 1; i >= 0; i--) {
+    const raw = rows[i] ?? '';
+    const row = raw.trim();
+    if (!row || BOX_EDGE_RE.test(row)) continue;
+    if (/^Question\s+\d+\s+of\s+\d+\s*$/i.test(row)) break;
+    if (/^\d{1,2}\.\s+\S/.test(row)) break; // the question prompt itself
+    const opt = ASK_OPTION_RE.exec(raw);
+    if (opt) {
+      const suffix = pendingSuffix.join('');
+      pendingSuffix.length = 0;
+      collected.push({
+        label: `${(opt[4] ?? '').trim()}${suffix}`,
+        checked: (opt[3] ?? ' ') !== ' ',
+        selected: Boolean(opt[2]),
+      });
+      continue;
+    }
+    // Continuation of a wrapped option (deeper indent, no checkbox).
+    if (/^\s{4,}\S/.test(raw) && !ASK_OPTION_RE.test(raw)) {
+      pendingSuffix.unshift(row);
+      continue;
+    }
+    if (collected.length > 0) break;
+    pendingSuffix.length = 0;
+  }
+  if (collected.length < 1) return null;
+  collected.reverse();
+  if (!collected.some((o) => o.selected) && collected.length < 2) return null;
+  const options: PickerOption[] = collected.map((o, k) => ({
+    n: k + 1,
+    label: o.label,
+    checked: o.checked,
+    selected: o.selected,
+  }));
+  if (options.filter((o) => o.selected).length > 1) {
+    // Exactly one highlight; if the screen glitched, keep the first.
+    let seen = false;
+    for (const o of options) {
+      if (o.selected && seen) o.selected = false;
+      else if (o.selected) seen = true;
+    }
+  }
+  let title: string | undefined;
+  for (let i = footerIdx - 1; i >= 0; i--) {
+    const row = (rows[i] ?? '').trim();
+    if (/^Question\s+\d+\s+of\s+\d+\s*$/i.test(row)) {
+      for (let j = i - 1; j >= 0; j--) {
+        const head = (rows[j] ?? '').trim();
+        if (!head || BOX_EDGE_RE.test(head)) continue;
+        title = head;
+        break;
+      }
+      break;
+    }
+  }
+  if (!title) title = questionAbove(rows, footerIdx) || undefined;
+  return {
+    title,
+    options,
+    hint: (rows[footerIdx] ?? '').trim(),
+    numbered: false,
+    multi: { nextSelected: false },
+  };
+}
+
+/** Cursor Follow-ups strip under a finished answer (or below AskQuestion). */
+function parseCursorFollowUps(rows: readonly string[], footerIdx: number): TuiPicker | null {
+  const block: string[] = [];
+  for (let i = footerIdx - 1; i >= 0; i--) {
+    const row = (rows[i] ?? '').trim();
+    if (!row) {
+      if (block.length) break;
+      continue;
+    }
+    if (/^Follow-ups$/i.test(row)) break;
+    block.unshift(rows[i] ?? '');
+  }
+  const options: PickerOption[] = [];
+  for (const raw of block) {
+    const m = /^(\s*)([❯›→▶]\s*)?[○●]\s+(\S.*)$/.exec(raw);
+    if (!m) continue;
+    options.push({
+      n: options.length + 1,
+      label: (m[3] ?? '').trim(),
+      selected: Boolean(m[2]),
+    });
+  }
+  if (options.length < 1) return null;
+  if (!options.some((o) => o.selected) && options.length >= 1) {
+    // Follow-ups often draws no marker until ↑ is pressed; keep options.
+  }
+  return {
+    title: 'Follow-ups',
+    options,
+    hint: (rows[footerIdx] ?? '').trim(),
+    numbered: false,
+  };
+}
+
+/**
  * A menu drawn WITHOUT numbers, directly above its footer. Claude 2.1.303
  * draws its confirm boxes this way (captured live, 108 columns):
  *
@@ -397,7 +540,8 @@ function lastOptionIdx(rows: readonly string[]): number {
   return -1;
 }
 
-const PLACEHOLDER_RE = /^type something\.?$/i;
+const PLACEHOLDER_RE = /^(?:type something\.?|Other:\s*\(type to answer\))$/i;
+const OTHER_TYPED_RE = /^Other:\s*(.*)$/i;
 
 /**
  * The row of a claude AskUserQuestion picker that is a TEXT FIELD ("Type
@@ -405,9 +549,12 @@ const PLACEHOLDER_RE = /^type something\.?$/i;
  * field — tapping it twice on a phone left "33" there and nothing submitted
  * (09-18). Once typed into, the row shows the typed text instead of the
  * placeholder, so it is also known as the row right above "Chat about this".
+ * Cursor AskQuestion uses `Other: (type to answer)` for the same idea.
  */
 export function freeTextOption(p: TuiPicker): PickerOption | undefined {
-  const byName = p.options.find((o) => PLACEHOLDER_RE.test(o.label.trim()));
+  const byName = p.options.find(
+    (o) => PLACEHOLDER_RE.test(o.label.trim()) || OTHER_TYPED_RE.test(o.label.trim()),
+  );
   if (byName) return byName;
   const chat = p.options.findIndex((o) => /^chat about this$/i.test(o.label.trim()));
   return chat > 0 ? p.options[chat - 1] : undefined;
@@ -415,7 +562,14 @@ export function freeTextOption(p: TuiPicker): PickerOption | undefined {
 
 /** what is already typed into the field ('' while it shows the placeholder) */
 export function typedIn(o: PickerOption): string {
-  return PLACEHOLDER_RE.test(o.label.trim()) ? '' : o.label.trim();
+  const label = o.label.trim();
+  if (PLACEHOLDER_RE.test(label)) return '';
+  const other = OTHER_TYPED_RE.exec(label);
+  if (other) {
+    const body = (other[1] ?? '').trim();
+    return /^\(type to answer\)$/i.test(body) ? '' : body;
+  }
+  return label;
 }
 
 /** arrow keys that move the picker's cursor onto `target` without typing */

@@ -101,6 +101,23 @@ describe('validateParams', () => {
     ).toEqual({ sessionId: 's', targetProviderId: 'cursor' });
   });
 
+  it('preserves Antigravity provider ids across spawn, handoff, and provider switching', () => {
+    const spawn = { agentName: 'Agy', role: 'coder', providerId: 'antigravity' as const };
+    expect(validateParams('session.spawn', spawn)).toEqual(spawn);
+    expect(
+      validateParams('session.handoffNow', {
+        sessionId: 's',
+        successorProviderId: 'antigravity',
+      }),
+    ).toEqual({ sessionId: 's', successorProviderId: 'antigravity' });
+    expect(
+      validateParams('session.switchProvider', {
+        sessionId: 's',
+        targetProviderId: 'antigravity',
+      }),
+    ).toEqual({ sessionId: 's', targetProviderId: 'antigravity' });
+  });
+
   it('rejects session.spawn missing required agentName', () => {
     expect(() => validateParams('session.spawn', { role: 'coder' })).toThrow(
       ProtocolValidationError,

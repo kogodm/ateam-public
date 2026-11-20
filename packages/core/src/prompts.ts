@@ -43,7 +43,8 @@ export type PromptName =
   | 'checkpoint'
   | 'sizeRule'
   | 'codegraphHint'
-  | 'delegation';
+  | 'delegation'
+  | 'peerCollab';
 
 export interface PromptMeta {
   title: string;
@@ -73,6 +74,11 @@ export const EDITABLE_PROMPTS: Readonly<Record<Exclude<PromptName, 'record'>, Pr
   delegation: {
     title: 'Working method & project docs',
     when: "Appended to every project session: hand self-contained work to sub-agents, keep durable detail in docs/ (one overview + layered indexes), and how to answer. {{DOCS_DIR}} becomes the project's docs folder.",
+    live: true,
+  },
+  peerCollab: {
+    title: 'Cross-session collaboration privacy',
+    when: 'Appended to every session at start/resume: when another session asks for collaboration, reply with results only; if unsure whether to expose detail, ask this session\'s user first and wait for approval.',
     live: true,
   },
   codegraphHint: {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type PickerOption,
   freeTextOption,
+  isSpaceToggleMulti,
   keysToNext,
   keysToReach,
   parsePicker,
@@ -9,6 +10,7 @@ import {
 } from './tuiPicker';
 import multiScreens from './fixtures/claude-2.1.309-multiselect-screens.json';
 import cursorScreens from './fixtures/cursor-2026.11.13-screens.json';
+import askScreens from './fixtures/cursor-askquestion-screens.json';
 import { isModelList } from './modelMenuCache';
 import { isModelPicker } from './modelPickerActions';
 
@@ -628,5 +630,52 @@ describe('Cursor Agent 2026.11.13 menus (captured live)', () => {
 
   it('does not treat the slash-command menu as a picker (no footer)', () => {
     expect(parsePicker(screens.slashMenu ?? [])).toBeNull();
+  });
+});
+
+describe('Cursor AskQuestion (captured live 2026.11.17)', () => {
+  const screens = askScreens as Record<string, string[]>;
+
+  it('reads checkbox options, highlight and Space-select multi', () => {
+    const p = parsePicker(screens['ask-initial'] ?? []);
+    expect(p?.title).toBe('换音频工程');
+    expect(p?.numbered).toBe(false);
+    expect(p?.multi).toEqual({ nextSelected: false });
+    expect(isSpaceToggleMulti(p)).toBe(true);
+    expect(p?.options.map((o) => [o.selected, o.checked, o.label.slice(0, 24)])).toEqual([
+      [true, false, '/private/var/folders/rl/'],
+      [false, false, '/private/var/folders/rl/'],
+      [false, false, '/private/var/folders/rl/'],
+      [false, false, 'Other: (type to answer)'],
+    ]);
+    expect(freeTextOption(p as NonNullable<typeof p>)?.label).toBe('Other: (type to answer)');
+  });
+
+  it('reads checked boxes and rejoins wrapped option labels', () => {
+    const p = parsePicker(screens['ask-space2'] ?? []);
+    expect(p?.options.map((o) => o.checked)).toEqual([true, true, false, false]);
+    expect(p?.options[1]?.selected).toBe(true);
+    expect(p?.options[2]?.label).toMatch(/projects\/audio\/$/);
+  });
+
+  it('prefers AskQuestion over Follow-ups when both footers are visible', () => {
+    const p = parsePicker(screens['ask-with-followups'] ?? []);
+    expect(p?.title).toBe('换音频工程：确认新位置');
+    expect(isSpaceToggleMulti(p)).toBe(true);
+    expect(p?.options).toHaveLength(4);
+    expect(p?.options[1]?.selected).toBe(true);
+    expect(p?.options.map((o) => o.label)[0]).toContain('skill-audio');
+  });
+
+  it('reads a Follow-ups strip on its own', () => {
+    const p = parsePicker(screens['followups-only'] ?? []);
+    expect(p?.title).toBe('Follow-ups');
+    expect(p?.numbered).toBe(false);
+    expect(p?.multi).toBeUndefined();
+    expect(isSpaceToggleMulti(p)).toBe(false);
+    expect(p?.options.map((o) => [o.label, o.selected])).toEqual([
+      ['用 reaper做', false],
+      ['给我听听', true],
+    ]);
   });
 });

@@ -873,6 +873,7 @@ export class SessionManager extends EventEmitter {
     const recalled = this.recallFn?.(human.id, cwd, { directoryless }) ?? '';
     const appendSystemPrompt = [
       recalled,
+      getPrompt('peerCollab').trim(),
       codegraphEnabled() && !directoryless ? getPrompt('codegraphHint') : '',
       args.extraSystemPrompt ?? '',
     ]

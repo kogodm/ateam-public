@@ -403,7 +403,7 @@ export default function App(): JSX.Element {
     dir: '',
     providerId: 'claude',
   });
-  // agent-CLI runtimes detected on this machine (claude/codex/opencode) — powers
+  // agent-CLI runtimes detected on this machine (claude/codex/opencode/cursor/agy) — powers
   // the New session "Runtime" picker. Only `available` ones are offered.
   const [providers, setProviders] = useState<Result<'provider.list'>['providers']>([]);
   const availableProviders = useMemo(() => providers.filter((p) => p.available), [providers]);

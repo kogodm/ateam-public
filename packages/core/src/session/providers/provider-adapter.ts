@@ -1,7 +1,7 @@
 /**
- * One agent-CLI runtime — claude / codex / opencode / future. SessionManager
- * is the glue: it owns the PTY/transcript/event lifecycle; the adapter
- * decides what binary to spawn and what flags to pass.
+ * One agent-CLI runtime — claude / codex / opencode / cursor / antigravity.
+ * SessionManager is the glue: it owns the PTY/transcript/event lifecycle; the
+ * adapter decides what binary to spawn and what flags to pass.
  *
  * Stays MINIMAL on purpose: anything claude-specific that isn't generalizable
  * (e.g. drops-inbox protocol, transcript shape) goes elsewhere keyed by

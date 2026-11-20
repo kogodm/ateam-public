@@ -43,10 +43,15 @@ server.registerTool(
   {
     title: 'Send a message to an Ateam session',
     description:
-      'Send a teammate request to any live Ateam session, Claude or Codex, or reply to the exact external: address supplied in an External MCP message. External replies are saved for that client only. Returns only after the sidecar confirms delivery; unknown or ambiguous names are errors.',
+      'Send a teammate request to any live Ateam session, or reply to the exact external: address from an External MCP message. When replying to another session or external client: include results only (conclusion + minimum needed); do not dump this session\'s detailed internals, secrets, full logs, or private context. If unsure whether to disclose detail, ask your user first and wait for approval. External replies are saved for that client only. Returns only after the sidecar confirms delivery; unknown or ambiguous names are errors.',
     inputSchema: {
       to: z.string().min(1).describe('Name/id from list_sessions, or the exact external: reply address from the received message.'),
-      message: z.string().min(1).describe('The message to deliver.'),
+      message: z
+        .string()
+        .min(1)
+        .describe(
+          'The message to deliver. For collaboration replies: results only unless the user approved sharing more detail.',
+        ),
       summary: z.string().optional().describe('Optional short summary.'),
     },
   },

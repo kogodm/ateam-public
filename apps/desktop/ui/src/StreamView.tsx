@@ -67,6 +67,7 @@ import { type Run, canGroupTool, groupToolRuns, isRun } from './toolRuns';
 import {
   type TuiPicker,
   freeTextOption,
+  isSpaceToggleMulti,
   keysToNext,
   keysToReach,
   parsePicker,
@@ -2977,8 +2978,12 @@ export function StreamView({
                     // highlight there from where the screen has it now
                     const current = parsePicker(readScreen(sessionId));
                     const option = current?.options.find((item) => item.label === o.label);
-                    if (current?.numbered === false && option)
-                      sendSeq(`${keysToReach(current, option)}\r`);
+                    if (current?.numbered === false && option) {
+                      // Cursor AskQuestion toggles with Space; Enter would
+                      // advance/submit the whole form instead.
+                      const key = isSpaceToggleMulti(current) ? ' ' : '\r';
+                      sendSeq(`${keysToReach(current, option)}${key}`);
+                    }
                     return;
                   }
                   // with the cursor inside the text field a digit is typed into it
@@ -3008,12 +3013,18 @@ export function StreamView({
               type="button"
               className="sv-ask-confirm"
               onClick={() => {
-                // Next is a row of its own, reached with the arrows from wherever the cursor is
                 const current = parsePicker(readScreen(sessionId));
-                if (current?.multi) sendSeq(`${keysToNext(current)}\r`);
+                if (!current?.multi) return;
+                // Cursor AskQuestion: Enter next/submit (no separate Next row).
+                if (isSpaceToggleMulti(current)) {
+                  sendSeq('\r');
+                  return;
+                }
+                // Claude: Next is a row of its own, reached with the arrows.
+                sendSeq(`${keysToNext(current)}\r`);
               }}
             >
-              Next
+              {isSpaceToggleMulti(picker) ? 'Submit' : 'Next'}
             </button>
           )}
           <div className="sv-picker-foot">

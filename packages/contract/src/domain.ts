@@ -40,7 +40,7 @@ export type SessionState = 'starting' | 'running' | 'idle' | 'hibernated' | 'exi
  *  provider here (plus its adapter in core) and every consumer picks it up. */
 /** every agent-CLI runtime Ateam knows how to drive — the ONE source of
  *  truth (schema enum + ProviderId type both derive from it). */
-export const PROVIDER_IDS = ['claude', 'codex', 'opencode', 'cursor'] as const;
+export const PROVIDER_IDS = ['claude', 'codex', 'opencode', 'cursor', 'antigravity'] as const;
 export type ProviderId = (typeof PROVIDER_IDS)[number];
 
 /** One running agent = one agent-CLI PTY session in its workspace cwd. */
