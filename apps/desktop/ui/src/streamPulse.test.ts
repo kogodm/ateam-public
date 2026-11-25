@@ -5,6 +5,8 @@ import {
   LOCAL_COMMAND_DONE,
   screenAwaitsSubmit,
   reviewSubmitIsHighlighted,
+  screenBusyStatusLine,
+  screenCompactingLine,
   screenIsBusy,
   screenRetryLine,
   shouldPulse,
@@ -15,10 +17,21 @@ import { parsePicker } from './tuiPicker';
 const IDLE_FOOTER = '  ⏵⏵ auto mode on (shift+tab to cycle) · ← 1 agent';
 const BUSY_FOOTER = '  ⏵⏵ auto mode on (shift+tab to cycle) · esc to interrupt · ← 1 agent';
 
+/** measured from Claude Code TUI while /compact (or auto-compact) runs — no interrupt footer */
+const COMPACTING_ROWS = [
+  '* Compacting conversation... (5m 52s)',
+  '└ Tip: Use /btw to ask a side question without interrupting Claude',
+];
+
 describe('screenIsBusy', () => {
   it('reads the footer claude only prints while a turn is running', () => {
     expect(screenIsBusy(['❯ ', BUSY_FOOTER])).toBe(true);
     expect(screenIsBusy(['❯ ', IDLE_FOOTER])).toBe(false);
+  });
+
+  it('treats Compacting conversation as busy even without esc to interrupt', () => {
+    expect(screenIsBusy(COMPACTING_ROWS)).toBe(true);
+    expect(screenIsBusy(['❯ ', IDLE_FOOTER, ...COMPACTING_ROWS])).toBe(true);
   });
 
   it('has no opinion when there is no screen to read', () => {
@@ -49,8 +62,23 @@ describe('shouldPulse', () => {
     expect(shouldPulse({ owesAnswer: true, sawBusyHint: false, idleTicks: 9999 })).toBe(true);
   });
 
-  it('does not pulse when nothing is owed, however busy the screen looks', () => {
+  it('does not pulse when nothing is owed and the screen is not busy', () => {
     expect(shouldPulse({ owesAnswer: false, sawBusyHint: true, idleTicks: 0 })).toBe(false);
+    expect(
+      shouldPulse({ owesAnswer: false, sawBusyHint: true, idleTicks: 0, screenBusy: false }),
+    ).toBe(false);
+  });
+
+  it('keeps pulsing through Compacting conversation even when transcript looks settled', () => {
+    expect(
+      shouldPulse({
+        owesAnswer: false,
+        sawBusyHint: true,
+        idleTicks: 99,
+        providerId: 'claude',
+        screenBusy: true,
+      }),
+    ).toBe(true);
   });
 });
 
@@ -128,9 +156,21 @@ describe('Codex working pulse', () => {
     );
   });
 
-  it('does not change Claude or unknown-provider completion behavior', () => {
-    expect(shouldPulse({ ...codex, providerId: 'claude' })).toBe(false);
-    expect(shouldPulse({ ...codex, providerId: undefined })).toBe(false);
+  it('lets Claude follow the same live-screen busy signal (needed for compacting)', () => {
+    expect(shouldPulse({ ...codex, providerId: 'claude' })).toBe(true);
+    expect(shouldPulse({ ...codex, providerId: undefined })).toBe(true);
+  });
+
+  it('still ends Claude turns from a quiet screen without inventing Codex-only rules', () => {
+    expect(
+      shouldPulse({
+        providerId: 'claude',
+        owesAnswer: false,
+        sawBusyHint: true,
+        screenBusy: false,
+        idleTicks: IDLE_TICKS_BEFORE_BELIEVING,
+      }),
+    ).toBe(false);
   });
 });
 
@@ -206,5 +246,36 @@ describe('screenRetryLine', () => {
   it('null when nothing is being retried', () => {
     expect(screenRetryLine(['✻ Thinking… (12s · esc to interrupt)'])).toBeNull();
     expect(screenRetryLine([])).toBeNull();
+  });
+});
+
+describe('screenCompactingLine / screenBusyStatusLine', () => {
+  it('reads Compacting conversation without the spinner glyph or tip row', () => {
+    expect(screenCompactingLine(COMPACTING_ROWS)).toBe('Compacting conversation... (5m 52s)');
+    expect(screenBusyStatusLine(COMPACTING_ROWS)).toBe('Compacting conversation... (5m 52s)');
+  });
+
+  it('prefers compacting over a retry line when both appear', () => {
+    const rows = [
+      '* Compacting conversation... (1m 3s)',
+      '* Waiting for API response · will retry in 5s · check your network',
+    ];
+    expect(screenBusyStatusLine(rows)).toBe('Compacting conversation... (1m 3s)');
+  });
+
+  it('falls back to the retry line when not compacting', () => {
+    const rows = [
+      '* Waiting for API response · will retry in 23s · check your network',
+      '  ⏵⏵ auto mode on · esc to interrupt',
+    ];
+    expect(screenBusyStatusLine(rows)).toBe(
+      'Waiting for API response · will retry in 23s · check your network',
+    );
+  });
+
+  it('null when neither status is on screen', () => {
+    expect(screenCompactingLine(['✻ Thinking… (12s · esc to interrupt)'])).toBeNull();
+    expect(screenBusyStatusLine(['✻ Thinking… (12s · esc to interrupt)'])).toBeNull();
+    expect(screenBusyStatusLine([])).toBeNull();
   });
 });

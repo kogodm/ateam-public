@@ -26,11 +26,11 @@ describe('codexToolLabel', () => {
   it.each([
     ['exec', 'Run tools'],
     ['functions.exec', 'Run tools'],
-    ['functions.view_image', 'View image'],
+    ['functions.view_image', 'Viewed image'],
     ['multi_agent_v1__wait_agent', 'Wait for result'],
     ['Bash', 'Run command'],
     ['exec_command', 'Run command'],
-    ['view_image', 'View image'],
+    ['view_image', 'Viewed image'],
     ['send_input', 'Send to agent'],
     ['wait', 'Wait for result'],
     ['wait_agent', 'Wait for result'],
@@ -46,7 +46,7 @@ describe('codexToolLabel', () => {
     (toolName) => {
       expect(
         codexToolLabel({ toolName, text: 'image(await tools.view_image({path: "a.png"}));' }),
-      ).toBe('View image');
+      ).toBe('Viewed image');
       expect(
         codexToolLabel({ toolName, text: '  text(await tools.exec_command({cmd: "pwd"}));' }),
       ).toBe('Run command');

@@ -18,9 +18,12 @@ const home = mkdtempSync(join(tmpdir(), 'ateam-peers-'));
 afterEach(() => rmSync(join(home, 'peer-outbox'), { recursive: true, force: true }));
 
 describe('peer addressing and envelope', () => {
-  it.each(['Coder', 'cOdEr', 'bbbbbbbb', 'BBBBBBBB-2222'])('resolves %s', (to) => {
-    expect(resolvePeer(peers, sender.id, to)).toEqual(target);
-  });
+  it.each(['Coder', 'cOdEr', 'bbbbbbbb', 'BBBBBBBB-2222', 'ateam:bbbbbbbb-2222'])(
+    'resolves %s',
+    (to) => {
+      expect(resolvePeer(peers, sender.id, to)).toEqual(target);
+    },
+  );
   it('rejects ambiguity with candidates, unknown peers, and self', () => {
     expect(() =>
       resolvePeer([...peers, { ...target, id: 'cccccccc', name: 'CODER' }], sender.id, 'coder'),

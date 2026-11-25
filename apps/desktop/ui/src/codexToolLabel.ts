@@ -20,7 +20,8 @@ export function codexToolLabel(
   switch (tool.toolName?.split('.').at(-1)?.split('__').at(-1)) {
     case 'exec': {
       const input = tool.text.trimStart();
-      if (input.startsWith('image(await tools.view_image(')) return 'View image';
+      // Codex TUI past-tense wording for a completed image inspection
+      if (input.startsWith('image(await tools.view_image(')) return 'Viewed image';
       if (input.startsWith('text(await tools.exec_command(')) return 'Run command';
       return 'Run tools';
     }
@@ -28,7 +29,7 @@ export function codexToolLabel(
     case 'exec_command':
       return 'Run command';
     case 'view_image':
-      return 'View image';
+      return 'Viewed image';
     case 'send_input':
       return 'Send to agent';
     case 'wait':

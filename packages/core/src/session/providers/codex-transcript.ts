@@ -106,6 +106,20 @@ export function codexToolSource(lines: readonly string[]): CodexProjectionOption
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 
+/** Codex ImageView paths are often `file:///…` URIs; Stream needs a real path
+ *  to open/preview the picture (same as the TUI's "Viewed image" row). */
+export function codexLocalPath(raw: string): string {
+  const s = raw.trim();
+  if (!/^file:\/\//i.test(s)) return s;
+  let p = s.replace(/^file:\/\//i, '').replace(/[?#].*$/, '');
+  try {
+    p = decodeURIComponent(p);
+  } catch {
+    /* keep as written */
+  }
+  return p;
+}
+
 /** codex content parts are `{type:'text'|'Text', text}` with other kinds
  *  (images, encrypted blobs) mixed in — take the text, ignore the rest. */
 function partsText(v: unknown): string {
@@ -527,7 +541,9 @@ export function parseCodexBlocks(
       break;
     }
     case 'ImageView':
-      push('assistant', str(item.path), 'tool_use', 'view_image');
+      // Match Codex TUI "Viewed image <basename>" — path must be local so
+      // Stream can thumb + open it (file:// URIs never matched imagePaths).
+      push('assistant', codexLocalPath(str(item.path)), 'tool_use', 'view_image');
       push('tool', '[completed]', 'tool_result');
       break;
     case 'SubAgentActivity':

@@ -10549,6 +10549,35 @@ button {
   border: 1px solid var(--line, #232a3a);
   border-radius: 6px;
 }
+/* Codex ImageView — TUI "Viewed image <basename>" + expand for path/preview */
+.sv-viewed-image-file {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-style: dashed;
+  text-underline-offset: 2px;
+  color: var(--muted, #8a8fa3);
+  font: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.sv-viewed-image-file:hover {
+  color: var(--fg);
+}
+.sv-viewed-image-path {
+  padding: 2px 0 6px;
+  font-size: calc(11px * var(--sv-scale, 1));
+  color: var(--muted, #8a8fa3);
+  word-break: break-all;
+}
 .sv-diff {
   /* the terminal's diff, in the card: numbered lines, added green, removed red */
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -11331,6 +11360,13 @@ button.sv-diff-file:hover {
   font-size: calc(11.5px * var(--sv-scale, 1));
   line-height: 1.5;
   color: var(--warn);
+}
+/* Compacting conversation… (and similar long waits that are not errors) */
+.sv-working-status {
+  margin-left: 26px;
+  font-size: calc(11.5px * var(--sv-scale, 1));
+  line-height: 1.5;
+  color: var(--accent, #7c8cff);
 }
 .sv-working-tip {
   margin-left: 26px;

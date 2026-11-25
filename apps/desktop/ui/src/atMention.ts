@@ -3,12 +3,16 @@ import type { Rpc } from './rpc';
 
 /** The `@…` being typed at the caret: `start` is the index of the `@`,
  *  `query` what follows it. An `@` counts only at the start or after
- *  whitespace — `a@b.com` is an address, not a file. */
+ *  whitespace — `a@b.com` is an address, not a file. `@@…` is a human
+ *  mention (see humanMention.ts), so a second `@` does not open files. */
 export function atTokenAt(text: string, caret: number): { start: number; query: string } | null {
   const m = /(?:^|\s)@([^\s@]*)$/.exec(text.slice(0, caret));
   if (!m) return null;
   const query = m[1] ?? '';
-  return { start: caret - query.length - 1, query };
+  const start = caret - query.length - 1;
+  // the second `@` of `@@Name` would otherwise look like a file query
+  if (start > 0 && text[start - 1] === '@') return null;
+  return { start, query };
 }
 
 /** `text` with the token replaced by `@path` — a file gets a trailing space

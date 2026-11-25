@@ -11,6 +11,10 @@ describe('atTokenAt', () => {
     expect(atTokenAt('mail a@b.com', 12)).toBeNull();
     expect(atTokenAt('@src/app.ts done', 16)).toBeNull();
   });
+  it('does not steal the second @ of a @@ human mention', () => {
+    expect(atTokenAt('@@', 2)).toBeNull();
+    expect(atTokenAt('ask @@Ali', 9)).toBeNull();
+  });
   it('only what is before the caret counts', () => {
     expect(atTokenAt('@abc tail', 2)).toEqual({ start: 0, query: 'a' });
   });

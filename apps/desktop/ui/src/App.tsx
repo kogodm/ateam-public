@@ -32,6 +32,7 @@ import { McpApproval } from './SettingsMcp';
 import { Setup } from './Setup';
 import { StreamView } from './StreamView';
 import { Term, estimateTermDims } from './Term';
+import { candidatesFromSessions } from './humanMention';
 import { UpdateBanner } from './UpdateBanner';
 import { avatarSrc } from './avatars';
 import { fillComposer } from './composerRegistry';
@@ -1206,6 +1207,15 @@ export default function App(): JSX.Element {
   }, []);
 
   const sessions = useMemo<SessionNode[]>(() => tree.flatMap((p) => p.sessions), [tree]);
+  /** `@@` in Stream: same-project peers + directory-less Chats. */
+  const peerMentions = useMemo(() => {
+    const self = sessions.find((s) => s.sessionId === focused);
+    if (!self) return [];
+    return candidatesFromSessions(sessions, {
+      sessionId: self.sessionId,
+      projectId: self.workspaceId === 'direct' ? undefined : self.projectId,
+    });
+  }, [sessions, focused]);
   /** Which face a message from ANOTHER session wears: find the session by the
    *  name it sent under, then the human running it. */
   const avatarOfSession = useCallback(
@@ -3754,6 +3764,7 @@ export default function App(): JSX.Element {
               onUserInput={engage}
               onOpenPath={openPath}
               avatarOfSession={avatarOfSession}
+              peerMentions={peerMentions}
             />
           )}
           {focused && !isStreamView(focused) && (

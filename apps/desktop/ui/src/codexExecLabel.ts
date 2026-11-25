@@ -45,7 +45,7 @@ function action(name: string, argument: unknown): string | undefined {
     case 'apply_patch':
       return 'Apply changes';
     case 'view_image':
-      return 'View image';
+      return 'Viewed image';
     case 'spawn_agent':
       return 'Start sub-agent';
     case 'send_input':

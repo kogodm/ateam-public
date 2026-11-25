@@ -46,7 +46,9 @@ export function resolvePeer(
   from: string,
   to: string,
 ): PeerSession {
-  const q = to.trim().toLowerCase();
+  // Stream `@@Name ateam:<id>` and envelope from="ateam:<id>" both use the
+  // prefix; strip so send_message to= accepts either form.
+  const q = to.trim().toLowerCase().replace(/^ateam:/, '');
   const exact = sessions.filter((s) => s.id.toLowerCase() === q);
   const matches = exact.length
     ? exact

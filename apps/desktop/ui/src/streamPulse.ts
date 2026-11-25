@@ -16,6 +16,15 @@ import type { ProviderId } from '@ateam/contract';
 /** The TUI footer's offer to interrupt — present only while a turn runs. */
 export const BUSY_HINT = /\besc to interrupt\b/i;
 
+/**
+ * Claude Code's auto-/manual context compaction status (measured 2026-11):
+ *   `* Compacting conversation... (5m 52s)`
+ *   `└ Tip: Use /btw to ask a side question without interrupting Claude`
+ * While this is on screen the interrupt footer is often absent, so treating
+ * only `esc to interrupt` as busy made Stream look idle for minutes.
+ */
+export const COMPACTING_RE = /\bCompacting conversation\b/i;
+
 /** A slash command the CLI answered itself; its output is in the record. */
 export const LOCAL_COMMAND_DONE = /<local-command-stdout>/;
 
@@ -44,7 +53,7 @@ export function reviewSubmitIsHighlighted(rows: readonly string[]): boolean {
 
 export function screenIsBusy(rows: readonly string[]): boolean | null {
   if (rows.length === 0) return null;
-  return rows.some((r) => BUSY_HINT.test(r));
+  return rows.some((r) => BUSY_HINT.test(r) || COMPACTING_RE.test(r));
 }
 
 /** A line claude draws while an API request is failing and being retried —
@@ -55,19 +64,41 @@ export function screenIsBusy(rows: readonly string[]): boolean | null {
 const RETRY_RE =
   /Waiting for API response|will retry in \d+\s*s|Retrying in \d+|retry attempt \d+/i;
 
+function cleanStatusLine(row: string): string | null {
+  return (
+    row
+      .replace(/^[^\p{L}\p{N}]+/u, '')
+      .replace(/\s+/g, ' ')
+      .trim() || null
+  );
+}
+
 /** that line, cleaned of the spinner glyph in front of it; null when absent */
 export function screenRetryLine(rows: readonly string[]): string | null {
   for (let i = rows.length - 1; i >= 0; i--) {
     const r = rows[i] ?? '';
     if (!RETRY_RE.test(r)) continue;
-    return (
-      r
-        .replace(/^[^\p{L}\p{N}]+/u, '')
-        .replace(/\s+/g, ' ')
-        .trim() || null
-    );
+    return cleanStatusLine(r);
   }
   return null;
+}
+
+/** Compacting status line (without the tip row under it); null when absent. */
+export function screenCompactingLine(rows: readonly string[]): string | null {
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const r = rows[i] ?? '';
+    if (!COMPACTING_RE.test(r)) continue;
+    return cleanStatusLine(r);
+  }
+  return null;
+}
+
+/**
+ * Prefer compaction over network-retry when both somehow appear: compaction
+ * is the longer, more important wait, and Stream only has one status slot.
+ */
+export function screenBusyStatusLine(rows: readonly string[]): string | null {
+  return screenCompactingLine(rows) ?? screenRetryLine(rows);
 }
 
 /** Polls without the hint before we believe the terminal over the transcript.
@@ -86,9 +117,11 @@ export function shouldPulse(s: {
   screenBusy?: boolean | null;
   waitingForInput?: boolean;
 }): boolean {
+  if (s.providerId === 'codex' && s.waitingForInput) return false;
+  // Live TUI busy (interrupt footer OR Compacting conversation) wins over a
+  // quiet transcript — compaction can run for minutes with no new records.
+  if (s.screenBusy === true) return true;
   if (s.providerId === 'codex') {
-    if (s.waitingForInput) return false;
-    if (s.screenBusy === true) return true;
     if (s.screenBusy === false && s.idleTicks >= IDLE_TICKS_BEFORE_BELIEVING) return false;
     if (s.sawBusyHint && s.idleTicks < IDLE_TICKS_BEFORE_BELIEVING) return true;
   }

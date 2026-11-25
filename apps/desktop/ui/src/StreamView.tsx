@@ -8,6 +8,12 @@ import { InjectedUserTurnCard, confirmsOptimisticUserTurn } from './InjectedUser
 import { PathContextMenu, usePathMenu } from './PathContextMenu';
 import { StreamModelPicker } from './StreamModelPicker';
 import { atTokenAt, insertMention, useAtMatches } from './atMention';
+import {
+  atAtTokenAt,
+  insertHumanMention,
+  matchHumanMentions,
+  type HumanMentionCandidate,
+} from './humanMention';
 import { AVATAR_IDS, avatarSrc } from './avatars';
 import { codePath, codeUrl, markCodePaths } from './codePath';
 import { codexToolLabel } from './codexToolLabel';
@@ -25,6 +31,11 @@ import { FOX_LINES } from './foxLines';
 import { projectHistoricalTools } from './historicalTools';
 import { imageObjectUrl } from './imageBlob';
 import { findImagePaths } from './imagePaths';
+import {
+  isViewedImageTool,
+  viewedImageBasename,
+  viewedImagePath,
+} from './viewedImage';
 import { useImeGuard } from './imeGuard';
 import { marked } from './markdown';
 import { isModelPicker } from './modelPickerActions';
@@ -56,8 +67,9 @@ import {
   LOCAL_COMMAND_DONE,
   reviewSubmitIsHighlighted,
   screenAwaitsSubmit,
+  COMPACTING_RE,
+  screenBusyStatusLine,
   screenIsBusy,
-  screenRetryLine,
   shouldPulse,
 } from './streamPulse';
 import { pictureRun, swipeAxis, swipeFollow, swipePage } from './swipePage';
@@ -124,9 +136,10 @@ const IconThink = svg(
 );
 
 /** The picture a tool card is ABOUT — a Read of a screenshot, an MCP tool
- *  handed an image path. Only when the whole input IS that path: a shell
- *  command that merely mentions a .png is a command, not a picture. */
-function imageArg(text: string, cwd?: string): string | null {
+ *  handed an image path, or Codex ImageView / view_image (incl. file://).
+ *  A shell that merely mentions a .png is still a command, not a picture. */
+function imageArg(text: string, cwd?: string, toolName?: string, label?: string): string | null {
+  if (isViewedImageTool(toolName, label)) return viewedImagePath(text, cwd, toolName);
   const t = text.trim();
   if (!t || /\s/.test(t)) return null;
   return findImagePaths(t, cwd)[0] ?? null;
@@ -194,6 +207,7 @@ export function StreamView({
   onUserInput,
   onOpenPath,
   avatarOfSession,
+  peerMentions,
 }: {
   rpc: Rpc;
   sessionId: string;
@@ -217,6 +231,9 @@ export function StreamView({
   /** the avatar of whoever runs a session of this name — for messages another
    *  session sends here; absent when the name matches no session we know */
   avatarOfSession?: (name: string) => string | undefined;
+  /** `@@` menu: same-project peers + directory-less Chats (names shown;
+   *  inserted text carries `ateam:<sessionId>`) */
+  peerMentions?: readonly HumanMentionCandidate[];
 }): JSX.Element {
   const externalRuns = useExternalRuns(rpc, sessionId);
   const [turns, setTurns] = useState<Turn[]>([]);
@@ -694,8 +711,8 @@ export function StreamView({
   const [ptyBusy, setPtyBusy] = useState<boolean | null>(null);
   const [codexQueue, setCodexQueue] = useState<string[]>([]);
   const codexQueueRef = useRef<readonly string[]>([]);
-  /** claude's "Waiting for API response · will retry in 23s" — screen only */
-  const [retryLine, setRetryLine] = useState<string | null>(null);
+  /** Screen-only busy status: Compacting conversation…, or API retry wait. */
+  const [busyStatusLine, setBusyStatusLine] = useState<string | null>(null);
   /** Trust the ABSENCE of the hint only after we have seen it at least once:
    *  an older claude that never prints it must not be read as permanently
    *  idle, and neither must a screen we cannot read yet. */
@@ -721,7 +738,7 @@ export function StreamView({
       cacheModelMenu(providerId ?? 'claude', currentPicker);
       setPicker(currentPicker);
       setAwaitingSubmit(screenAwaitsSubmit(rows));
-      setRetryLine(screenRetryLine(rows));
+      setBusyStatusLine(screenBusyStatusLine(rows));
       const busy = screenIsBusy(rows);
       setPtyBusy(busy);
       if (busy === null) return; // no terminal mounted — no opinion to give
@@ -1053,15 +1070,39 @@ export function StreamView({
   const [atIndex, setAtIndex] = useState(0);
   /** the `@` whose menu Esc closed — it stays closed until another `@` */
   const [atDismissed, setAtDismissed] = useState<number | null>(null);
-  const atTok = atTokenAt(draft, caret);
+  // `@@` human/session mentions — same-project or Chats; menu shows name
+  const [atAtIndex, setAtAtIndex] = useState(0);
+  const [atAtDismissed, setAtAtDismissed] = useState<number | null>(null);
+  const atAtTok = atAtTokenAt(draft, caret);
+  const atAtQuery = atAtTok && atAtTok.start !== atAtDismissed ? atAtTok.query : null;
+  const atAtHits = useMemo(
+    () => (atAtQuery === null ? [] : matchHumanMentions(peerMentions ?? [], atAtQuery)),
+    [peerMentions, atAtQuery],
+  );
+  const atAtOpen = atAtQuery !== null;
+  const atTok = atAtOpen ? null : atTokenAt(draft, caret);
   const atQuery = atTok && atTok.start !== atDismissed ? atTok.query : null;
   const atHits = useAtMatches(rpc, cwd, atQuery);
   const atOpen = atQuery !== null && atHits.length > 0;
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset on a new query
   useEffect(() => setAtIndex(0), [atQuery]);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on a new query
+  useEffect(() => setAtAtIndex(0), [atAtQuery]);
   const pickMention = (path: string): void => {
     if (!atTok) return;
     const r = insertMention(draft, caret, atTok, path);
+    setDraft(r.text);
+    setCaret(r.caret);
+    requestAnimationFrame(() => {
+      const ta = taRef.current;
+      if (!ta) return;
+      ta.focus();
+      ta.setSelectionRange(r.caret, r.caret);
+    });
+  };
+  const pickHumanMention = (hit: { name: string; sessionId: string }): void => {
+    if (!atAtTok) return;
+    const r = insertHumanMention(draft, caret, atAtTok, hit);
     setDraft(r.text);
     setCaret(r.caret);
     requestAnimationFrame(() => {
@@ -1821,7 +1862,9 @@ export function StreamView({
     // an Edit/Write says only "has been updated"; the change itself rides on
     // the result, and opened it should read like the terminal's diff
     const patch = g.results.find((r) => r.patch)?.patch;
-    const shot = imageArg(g.use.text, cwd);
+    const viewed = isViewedImageTool(g.use.toolName, g.use.label);
+    const shot = imageArg(g.use.text, cwd, g.use.toolName, g.use.label);
+    const viewedName = shot ? viewedImageBasename(shot) : undefined;
     const signed = (sign: string): number =>
       (patch ?? []).reduce(
         (n, fp) =>
@@ -1842,22 +1885,40 @@ export function StreamView({
         ? fmtSeconds(Math.max(0, Math.round((Date.now() - startedMs) / 1000)))
         : undefined;
     return (
-      <details key={key} className="sv-tool" open={f.open}>
+      <details key={key} className={`sv-tool${viewed ? ' sv-viewed-image' : ''}`} open={f.open}>
         {/* biome-ignore lint/a11y/useKeyWithClickEvents: a <summary> turns Enter/Space into this click natively */}
         <summary onClick={f.onSummaryClick}>
           <span className="sv-tool-dot">
             {inFlight ? <span className="sv-run-pulse" /> : IconTool}
           </span>
-          <span className="sv-tool-name">{g.use.toolName ?? 'tool'}</span>
-          {g.use.text && (
-            // claude's own name for the call reads better than a command
-            // opening with `LOG=/private/tmp/…`; the command is one click away
-            <span
-              className={`sv-tool-input${g.use.label ? ' named' : ''}`}
-              title={g.use.label ? g.use.text : undefined}
+          <span className="sv-tool-name">
+            {viewed ? 'Viewed image' : (g.use.toolName ?? 'tool')}
+          </span>
+          {viewed && viewedName ? (
+            // Codex TUI: "Viewed image <basename>" — path opens on click
+            <button
+              type="button"
+              className="sv-tool-input sv-viewed-image-file"
+              title={shot ?? viewedName}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (shot) onOpenPath?.(shot, cwd);
+              }}
             >
-              {g.use.label || firstLine(g.use.text)}
-            </span>
+              {viewedName}
+            </button>
+          ) : (
+            g.use.text && (
+              // claude's own name for the call reads better than a command
+              // opening with `LOG=/private/tmp/…`; the command is one click away
+              <span
+                className={`sv-tool-input${g.use.label ? ' named' : ''}`}
+                title={g.use.label ? g.use.text : undefined}
+              >
+                {g.use.label || firstLine(g.use.text)}
+              </span>
+            )
           )}
           {pendingShell?.key === keyOf(g.use) && (
             <span className="sv-tool-count">
@@ -1901,8 +1962,20 @@ export function StreamView({
             <UploadThumb rpc={rpc} path={shot} onOpen={openViewer} chipWhenMissing={false} />
           </div>
         )}
+        {viewed && shot && (
+          <div className="sv-viewed-image-path">
+            {onOpenPath ? (
+              <button type="button" className="sv-historical-path" onClick={() => onOpenPath(shot, cwd)}>
+                {shot}
+              </button>
+            ) : (
+              shot
+            )}
+          </div>
+        )}
         {patch && <DiffView patch={patch} onOpenFile={(f) => onOpenPath?.(f, cwd)} />}
-        {g.use.text &&
+        {!viewed &&
+          g.use.text &&
           (patch ? (
             <details>
               <summary>Raw tool input</summary>
@@ -1913,10 +1986,12 @@ export function StreamView({
           ))}
         {/* an Edit/Write's own result only restates the diff ("has been
             updated"); a bash command that edited a file may also have
-            printed something worth reading, so keep that */}
-        {(!patch || (out && !WRITES_FILES.has(g.use.toolName ?? ''))) && (
-          <pre className="sv-tool-pre">{out || '(no output)'}</pre>
-        )}
+            printed something worth reading, so keep that.
+            Codex ImageView's "[completed]" is noise next to the picture. */}
+        {!viewed &&
+          (!patch || (out && !WRITES_FILES.has(g.use.toolName ?? ''))) && (
+            <pre className="sv-tool-pre">{out || '(no output)'}</pre>
+          )}
       </details>
     );
   };
@@ -2760,8 +2835,14 @@ export function StreamView({
             {/* held back for the first few seconds: a quick answer shouldn't
                 flash a tip on its way past. The key remounts the node so each
                 new line fades in instead of swapping in place. */}
-            {retryLine ? (
-              <span className="sv-working-retry">{retryLine}</span>
+            {busyStatusLine ? (
+              <span
+                className={
+                  COMPACTING_RE.test(busyStatusLine) ? 'sv-working-status' : 'sv-working-retry'
+                }
+              >
+                {busyStatusLine}
+              </span>
             ) : (
               elapsedS >= 6 && (
                 <span className="sv-working-tip" key={foxLine}>
@@ -3073,6 +3154,30 @@ export function StreamView({
           }}
         />
       )}
+      {atAtOpen && (
+        <div className="sv-slash" role="listbox" aria-label="Mention teammate">
+          {atAtHits.length === 0 ? (
+            <div className="sv-slash-item muted">
+              No teammates in this project or Chats
+            </div>
+          ) : (
+            atAtHits.map((h, i) => (
+              <button
+                type="button"
+                key={h.sessionId}
+                role="option"
+                aria-selected={i === atAtIndex}
+                className={`sv-slash-item${i === atAtIndex ? ' on' : ''}`}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => pickHumanMention(h)}
+              >
+                <span className="sv-slash-name">@@{h.name}</span>
+                <span className="sv-slash-desc">{h.detail}</span>
+              </button>
+            ))
+          )}
+        </div>
+      )}
       {atOpen && (
         <div className="sv-slash" role="listbox">
           {atHits.map((p, i) => (
@@ -3273,6 +3378,25 @@ export function StreamView({
                   if (action.kind === 'select') setSlashIndex(action.index);
                   else if (action.kind === 'complete') setDraft(action.text);
                   else setSlashDismissed(true);
+                  return;
+                }
+              }
+              if (atAtOpen && !e.nativeEvent.isComposing) {
+                const n = atAtHits.length;
+                if (n > 0 && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+                  e.preventDefault();
+                  setAtAtIndex((i) => (i + (e.key === 'ArrowDown' ? 1 : n - 1)) % n);
+                  return;
+                }
+                if (n > 0 && ((e.key === 'Enter' && !e.shiftKey) || e.key === 'Tab')) {
+                  e.preventDefault();
+                  const hit = atAtHits[Math.min(atAtIndex, n - 1)];
+                  if (hit) pickHumanMention(hit);
+                  return;
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  setAtAtDismissed(atAtTok?.start ?? null);
                   return;
                 }
               }

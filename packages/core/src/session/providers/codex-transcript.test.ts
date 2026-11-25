@@ -437,6 +437,27 @@ describe('Codex response_item tool exchange', () => {
     ]);
   });
 
+  it('strips file:// so Stream can preview Codex Viewed image paths', () => {
+    expect(
+      parseCodexBlocks(
+        line({
+          type: 'ImageView',
+          id: 'image',
+          path: 'file:///Users/me/art/avatar-happy-comparison.jpg',
+        }),
+        's',
+        0,
+      ),
+    ).toMatchObject([
+      {
+        kind: 'tool_use',
+        toolName: 'view_image',
+        text: '/Users/me/art/avatar-happy-comparison.jpg',
+      },
+      { kind: 'tool_result', text: '[completed]' },
+    ]);
+  });
+
   it('selects one tool source for a mixed rollout, independent of record order', () => {
     const rows = [
       line({ type: 'CommandExecution', id: 'command', command: ['true'], exit_code: 0 }),

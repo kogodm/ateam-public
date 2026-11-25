@@ -11,7 +11,7 @@ describe('nested Codex action labels', () => {
       codexExecLabel(
         'const result = await tools.view_image({path: "a.png"}); image(result.image_url);',
       ),
-    ).toBe('View image');
+    ).toBe('Viewed image');
     expect(
       codexExecLabel(
         'await Promise.all([tools.exec_command({cmd:"git diff"}),tools.apply_patch("patch")]);',
@@ -51,7 +51,7 @@ describe('nested Codex action labels', () => {
       codexExecLabel(
         'await tools.view_image({}); await tools.view_image({}); await tools.unknown({});',
       ),
-    ).toBe('View image · Run tool');
+    ).toBe('Viewed image · Run tool');
     expect(
       codexExecLabel(
         'await tools.exec_command({cmd:"rg term"}); await tools.write_stdin({chars:""});',
